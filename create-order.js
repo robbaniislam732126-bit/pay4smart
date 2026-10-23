@@ -1,0 +1,117 @@
+const https = require("https");
+
+function fetchFirebaseConfig() {
+  return new Promise((resolve) => {
+    const url = "https://pay4smart-default-rtdb.firebaseio.com/app_settings.json";
+    https.get(url, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        try {
+          resolve(JSON.parse(data) || {});
+        } catch (e) {
+          resolve({});
+        }
+      });
+    }).on("error", () => resolve({}));
+  });
+}
+
+exports.handler = async (event) => {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Content-Type": "application/json"
+  };
+
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 200, headers, body: "OK" };
+  }
+
+  if (event.httpMethod !== "POST") {
+    return { 
+      statusCode: 405, 
+      headers, 
+      body: JSON.stringify({ error: "Method Not Allowed" }) 
+    };
+  }
+
+  try {
+    const { amount, phone, name } = JSON.parse(event.body || "{}");
+
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      return { 
+        statusCode: 400, 
+        headers, 
+        body: JSON.stringify({ status: false, message: "সঠিক টাকার পরিমাণ দিন" }) 
+      };
+    }
+
+    if (!phone) {
+      return { 
+        statusCode: 400, 
+        headers, 
+        body: JSON.stringify({ status: false, message: "মোবাইল নম্বর পাওয়া যায়নি" }) 
+      };
+    }
+
+    const firebaseSettings = await fetchFirebaseConfig();
+
+    const GATEWAY_URL = firebaseSettings.gateway_api_url || "https://pay.dghost.in/api/create-order";
+    const USER_TOKEN = firebaseSettings.dghost_user_token || "bf16ca864f7a41e0e9fa5b11ba080f48";
+    const REDIRECT_URL = firebaseSettings.dghost_redirect_url || "https://pay4smart.netlify.app";
+    const CALLBACK_URL = firebaseSettings.gateway_callback_url || "https://pay4smart.netlify.app/.netlify/functions/payment-callback";
+
+    const orderId = "DEP" + Date.now();
+
+    const params = new URLSearchParams({
+      user_token: USER_TOKEN,
+      order_id: orderId,
+      amount: parseFloat(amount),
+      customer_mobile: phone,
+      customer_name: name || "User",
+      redirect_url: REDIRECT_URL,
+      callback_url: CALLBACK_URL,
+      webhook_url: CALLBACK_URL
+    });
+
+    const response = await fetch(GATEWAY_URL, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/x-www-form-urlencoded" 
+      },
+      body: params.toString()
+    });
+
+    const resData = await response.json();
+    console.log("Gateway Response:", resData);
+
+    // সব সম্ভাব্য ফরম্যাট থেকে পেমেন্ট লিংক সঠিকভাবে খুঁজে বের করার লজিক
+    const paymentUrl = resData.payment_url || 
+                       resData.url || 
+                       resData.link || 
+                       (resData.result && (resData.result.payment_url || resData.result.url || resData.result.link)) || 
+                       (resData.data && (resData.data.payment_url || resData.data.url));
+
+    if (paymentUrl) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ status: true, payment_url: paymentUrl })
+      };
+    } else {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(resData)
+      };
+    }
+  } catch (err) {
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ status: false, error: err.message })
+    };
+  }
+};
