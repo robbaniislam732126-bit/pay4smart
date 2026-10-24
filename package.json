@@ -1,11 +1,15 @@
 {
-  "name": "pay4smart-backend",
+  "name": "pay4smart",
   "version": "1.0.0",
+  "description": "Pay4Smart Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "axios": "^1.7.0",
+    "https-proxy-agent": "^7.0.4"
   }
 }
