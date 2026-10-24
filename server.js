@@ -1,39 +1,60 @@
 const express = require('express');
-const app = express();
+const cors = require('cors');
+const axios = require('axios');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 
+const app = express();
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// রিচার্জ ফাংশন রাউট
-const rechargeHandler = require('./recharge.js');
-app.post('/recharge', async (req, res) => {
-    const event = { httpMethod: 'POST', body: JSON.stringify(req.body) };
-    const result = await rechargeHandler(event);
-    res.status(result.statusCode).set(result.headers).send(result.body);
+// Webshare Static Proxy সেটআপ
+const proxyUrl = process.env.WEBSHARE_PROXY || 'http://bdhgmqzy:hbo9peyy3r88@45.38.107.97:6014';
+const httpsAgent = new HttpsProxyAgent(proxyUrl);
+
+// হোম রুট (সার্ভার চেক করার জন্য)
+app.get('/', (req, res) => {
+    res.send('Pay4Smart Server is Running Successfully!');
 });
 
-// অর্ডার ক্রিয়েট রাউট
-const createOrderHandler = require('./create-order.js');
-app.post('/create-order', async (req, res) => {
-    const event = { httpMethod: 'POST', body: JSON.stringify(req.body) };
-    const result = await createOrderHandler(event);
-    res.status(result.statusCode).set(result.headers).send(result.body);
+// লাইভ আইপি টেস্ট করার রুট (আপনার ফিক্সড আইপি 45.38.107.97 আসছে কিনা দেখার জন্য)
+app.get('/check-ip', async (req, res) => {
+    try {
+        const response = await axios.get('https://ipv4.webshare.io/', {
+            httpsAgent: httpsAgent,
+            proxy: false
+        });
+        res.json({
+            status: 'Success',
+            proxy_ip: response.data.trim(),
+            message: 'Static IP working properly'
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'Error',
+            error: error.message
+        });
+    }
 });
 
-// পেমেন্ট কলব্যাক রাউট
-const callbackHandler = require('./payment-callback.js');
-app.all('/payment-callback', async (req, res) => {
-    const event = { httpMethod: req.method, body: JSON.stringify(req.body || req.query) };
-    const result = await callbackHandler(event);
-    res.status(result.statusCode || 200).send(result.body);
-});
+// রিচার্জ বা পেমেন্ট গেটওয়ে API রিকোয়েস্ট হ্যান্ডলার
+app.post('/api/recharge', async (req, res) => {
+    try {
+        const targetApiUrl = req.body.apiUrl; // আপনার রিচার্জ গেটওয়ে URL
+        const payload = req.body.data || {};
 
-// সেন্ড ওটিপি রাউট
-const sendOtpHandler = require('./send-otp.js');
-app.post('/send-otp', async (req, res) => {
-    const event = { httpMethod: 'POST', body: JSON.stringify(req.body) };
-    const result = await sendOtpHandler(event);
-    res.status(result.statusCode).set(result.headers).send(result.body);
+        const response = await axios.post(targetApiUrl, payload, {
+            httpsAgent: httpsAgent,
+            proxy: false
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        res.status(error.response ? error.response.status : 500).json({
+            status: 'Failed',
+            message: error.response ? error.response.data : error.message
+        });
+    }
 });
 
 const PORT = process.env.PORT || 3000;
