@@ -1,7 +1,7 @@
 const https = require("https");
 const axios = require("axios");
 
-// মেমোরি লক: ডাবল ক্লিক বা রি-ট্রাই রোধের জন্য
+// ডাবল ক্লিক প্রতিরোধের জন্য মেমোরি লক
 const otpLock = {};
 
 function fetchFirebaseData(endpoint) {
@@ -70,7 +70,7 @@ exports.handler = async (event) => {
       };
     }
 
-    // ৩০ সেকেন্ডের কুলডাউন চেক (ডাবল ক্লিক বন্ধ করার জন্য)
+    // ৩০ সেকেন্ডের কুলডাউন চেক (ডাবল ক্লিক বন্ধ করা)
     const now = Date.now();
     if (otpLock[phone] && (now - otpLock[phone]) < 30000) {
       return {
@@ -78,38 +78,53 @@ exports.handler = async (event) => {
         headers,
         body: JSON.stringify({
           status: true,
-          message: "OTP ইতিমধ্যেই পাঠানো হয়েছে। দয়া করে ৩০ সেকেন্ড অপেক্ষা করুন।"
+          message: "OTP ইতিমধ্যেই পাঠানো হয়েছে। দয়া করে অপেক্ষা করুন।"
         })
       };
     }
 
-    // টাইম লক আপডেট
+    // টাইম লক সেট
     otpLock[phone] = now;
 
-    // ৬ সংখ্যার নতুন ওটিপি তৈরি
+    // ৬ সংখ্যার OTP তৈরি
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Firebase app_settings থেকে এসএমএস এপিআই কনফিগারেশন নেওয়া
+    // Firebase থেকে অ্যাডমিন সেটিংস আনা
     const appSettings = await fetchFirebaseData("app_settings");
-    const apiKey = appSettings.fast2sms_api_key || "YOUR_FAST2SMS_KEY";
+    
+    // অ্যাডমিন প্যানেলে থাকা SMS API URL ও Key
+    const smsUrlTemplate = appSettings.sms_api_url || "";
+    const smsApiKey = appSettings.sms_api_key || appSettings.fast2sms_api_key || "";
 
-    // Fast2SMS গেটওয়েতে রিকোয়েস্ট পাঠানো
-    const smsResponse = await axios.post(
-      "https://www.fast2sms.com/dev/bulkV2",
-      {
-        variables_values: otp,
-        route: "otp",
-        numbers: phone
-      },
-      {
-        headers: {
-          authorization: apiKey,
-          "Content-Type": "application/json"
+    if (smsUrlTemplate) {
+      // যদি অ্যাডমিন প্যানেলে কাস্টম URL টেমপ্লেট থাকে
+      const finalUrl = smsUrlTemplate
+        .replace(/{KEY}/g, encodeURIComponent(smsApiKey))
+        .replace(/{API_KEY}/g, encodeURIComponent(smsApiKey))
+        .replace(/{NUMBER}/g, encodeURIComponent(phone))
+        .replace(/{PHONE}/g, encodeURIComponent(phone))
+        .replace(/{OTP}/g, encodeURIComponent(otp));
+
+      await axios.get(finalUrl);
+    } else if (smsApiKey) {
+      // যদি ডিফল্ট Fast2SMS ব্যবহার করা হয়
+      await axios.post(
+        "https://www.fast2sms.com/dev/bulkV2",
+        {
+          variables_values: otp,
+          route: "otp",
+          numbers: phone
+        },
+        {
+          headers: {
+            authorization: smsApiKey,
+            "Content-Type": "application/json"
+          }
         }
-      }
-    );
+      );
+    }
 
-    // ফায়ারবেসে ব্যবহারকারীর অ্যাকাউন্টে ওটিপি সেভ করা (যাতে ভেরিফাই করা যায়)
+    // Firebase-এ ইউজারের তথ্যে OTP আপডেট করা
     await updateFirebaseData(`users/${phone}`, {
       reset_otp: otp,
       otp_created_at: now
@@ -129,7 +144,7 @@ exports.handler = async (event) => {
       statusCode: 500,
       headers,
       body: JSON.stringify({
-        error: "Failed to send SMS",
+        error: "SMS পাঠানো ব্যর্থ হয়েছে",
         details: error.response ? error.response.data : error.message
       })
     };
