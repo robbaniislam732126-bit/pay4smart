@@ -1,4 +1,10 @@
 const https = require("https");
+const axios = require("axios");
+const { HttpsProxyAgent } = require("https-proxy-agent");
+
+// Webshare ফিক্সড প্রক্সি কনফিগারেশন (আইপি: 45.38.107.97)
+const proxyUrl = "http://bdhgmqzy:hbo9peyy3r88@45.38.107.97:6014";
+const httpsAgent = new HttpsProxyAgent(proxyUrl);
 
 function fetchFirebaseData(endpoint) {
   return new Promise((resolve) => {
@@ -119,7 +125,6 @@ exports.handler = async (event) => {
 
     let template = firebaseSettings.recharge_api_url || "https://payicon.in/api/api_service/recharges?token={TOKEN}&provider_id={PROVIDER_ID}&number={NUMBER}&amount={AMOUNT}&api_order_id={ORDER_ID}&callback_url={CALLBACK_URL}";
 
-    // ডাইনামিকালি অ্যাডমিন প্যানেলের প্যারামিটার টেমপ্লেট বিল্ড করা
     const targetUrl = template
       .replace(/{TOKEN}/g, encodeURIComponent(token))
       .replace(/{PROVIDER_ID}/g, encodeURIComponent(provider_code))
@@ -128,15 +133,19 @@ exports.handler = async (event) => {
       .replace(/{ORDER_ID}/g, encodeURIComponent(apiOrderId))
       .replace(/{CALLBACK_URL}/g, encodeURIComponent(callbackUrl));
 
-    const response = await fetch(targetUrl, {
+    // Webshare প্রক্সি (45.38.107.97) দিয়ে এপিআই কল পাঠানো
+    const response = await axios({
       method: "POST",
+      url: targetUrl,
       headers: {
         "Accept": "*/*",
         "User-Agent": "Mozilla/5.0"
-      }
+      },
+      httpsAgent: httpsAgent,
+      proxy: false
     });
 
-    const responseText = await response.text();
+    const responseText = typeof response.data === "string" ? response.data : JSON.stringify(response.data);
     const cleanText = responseText.trim();
 
     let isSuccess = false;
@@ -144,7 +153,7 @@ exports.handler = async (event) => {
     let operatorRef = "";
 
     try {
-      const jsonRes = JSON.parse(cleanText);
+      const jsonRes = typeof response.data === "object" ? response.data : JSON.parse(cleanText);
       const resStatus = (jsonRes.status || jsonRes.STATUS || "").toString().toUpperCase();
 
       if (
@@ -184,7 +193,7 @@ exports.handler = async (event) => {
       // DTH
       else if (pCode >= 11 && pCode <= 15) marginRate = 4.0;
 
-      // Postpaid (Flat ₹0.30 except VI)
+      // Postpaid
       else if (pCode >= 16 && pCode <= 19) {
         isFlat = true;
         marginRate = 0.30;
@@ -194,7 +203,7 @@ exports.handler = async (event) => {
       // Google Play
       else if (pCode === 23) marginRate = 1.6;
 
-      // Electricity (Flat ₹1.00)
+      // Electricity
       else if (pCode >= 24 && pCode <= 28) {
         isFlat = true;
         marginRate = 1.00;
