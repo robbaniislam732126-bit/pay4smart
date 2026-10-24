@@ -1,12 +1,11 @@
 const https = require("https");
-const axios = require("axios");
 
-// ডাবল ক্লিক প্রতিরোধের জন্য মেমোরি লক
-const otpLock = {};
+// ডাবল ক্লিক প্রতিরোধের জন্য মেমোরি কুলডাউন লক
+const otpCooldown = {};
 
-function fetchFirebaseData(endpoint) {
+function fetchFirebaseConfig() {
   return new Promise((resolve) => {
-    const url = `https://pay4smart-default-rtdb.firebaseio.com/${endpoint}.json`;
+    const url = "https://pay4smart-default-rtdb.firebaseio.com/app_settings.json";
     https.get(url, (res) => {
       let data = "";
       res.on("data", (chunk) => (data += chunk));
@@ -18,23 +17,6 @@ function fetchFirebaseData(endpoint) {
         }
       });
     }).on("error", () => resolve({}));
-  });
-}
-
-function updateFirebaseData(endpoint, payload) {
-  return new Promise((resolve, reject) => {
-    const dataStr = JSON.stringify(payload);
-    const req = https.request(`https://pay4smart-default-rtdb.firebaseio.com/${endpoint}.json`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" }
-    }, (res) => {
-      let responseData = "";
-      res.on("data", chunk => responseData += chunk);
-      res.on("end", () => resolve(responseData));
-    });
-    req.on("error", reject);
-    req.write(dataStr);
-    req.end();
   });
 }
 
@@ -60,82 +42,58 @@ exports.handler = async (event) => {
 
   try {
     const data = JSON.parse(event.body || "{}");
-    const phone = data.userPhone || data.phone || data.mobile;
+    const { phone, otp } = data;
 
-    if (!phone) {
+    if (!phone || !otp) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: "মোবাইল নম্বর দেওয়া হয়নি।" })
+        body: JSON.stringify({ error: "Phone number and OTP are required" })
       };
     }
 
-    // ৩০ সেকেন্ডের কুলডাউন চেক (ডাবল ক্লিক বন্ধ করা)
+    // ৩০ সেকেন্ডের কুলডাউন চেক: ডাবল ক্লিক হলে দ্বিতীয় রিকোয়েস্ট আটকে দেবে
     const now = Date.now();
-    if (otpLock[phone] && (now - otpLock[phone]) < 30000) {
+    if (otpCooldown[phone] && (now - otpCooldown[phone]) < 30000) {
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          status: true,
-          message: "OTP ইতিমধ্যেই পাঠানো হয়েছে। দয়া করে অপেক্ষা করুন।"
+          status: "SUCCESS",
+          message: "OTP already sent. Please wait 30 seconds."
         })
       };
     }
 
-    // টাইম লক সেট
-    otpLock[phone] = now;
+    // টাইম লক আপডেট করা হলো
+    otpCooldown[phone] = now;
 
-    // ৬ সংখ্যার OTP তৈরি
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const firebaseSettings = await fetchFirebaseConfig();
+    const apiToken = firebaseSettings.sms_api_token || "d7fd7e561f3eb9cf534fb16a3052f970";
+    let smsTemplate = firebaseSettings.sms_api_url || "https://sms.renflair.in/V1.php?API={TOKEN}&PHONE={PHONE}&OTP={OTP}";
 
-    // Firebase থেকে অ্যাডমিন সেটিংস আনা
-    const appSettings = await fetchFirebaseData("app_settings");
-    
-    // অ্যাডমিন প্যানেলে থাকা SMS API URL ও Key
-    const smsUrlTemplate = appSettings.sms_api_url || "";
-    const smsApiKey = appSettings.sms_api_key || appSettings.fast2sms_api_key || "";
+    // ডাইনামিকালি অ্যাডমিন প্যানেলের প্যারামিটার ট্যাগ রিপ্লেস করা
+    const finalUrl = smsTemplate
+      .replace(/{TOKEN}/g, encodeURIComponent(apiToken))
+      .replace(/{PHONE}/g, encodeURIComponent(phone))
+      .replace(/{OTP}/g, encodeURIComponent(otp));
 
-    if (smsUrlTemplate) {
-      // যদি অ্যাডমিন প্যানেলে কাস্টম URL টেমপ্লেট থাকে
-      const finalUrl = smsUrlTemplate
-        .replace(/{KEY}/g, encodeURIComponent(smsApiKey))
-        .replace(/{API_KEY}/g, encodeURIComponent(smsApiKey))
-        .replace(/{NUMBER}/g, encodeURIComponent(phone))
-        .replace(/{PHONE}/g, encodeURIComponent(phone))
-        .replace(/{OTP}/g, encodeURIComponent(otp));
+    const response = await fetch(finalUrl, { method: "GET" });
+    const resultText = await response.text();
 
-      await axios.get(finalUrl);
-    } else if (smsApiKey) {
-      // যদি ডিফল্ট Fast2SMS ব্যবহার করা হয়
-      await axios.post(
-        "https://www.fast2sms.com/dev/bulkV2",
-        {
-          variables_values: otp,
-          route: "otp",
-          numbers: phone
-        },
-        {
-          headers: {
-            authorization: smsApiKey,
-            "Content-Type": "application/json"
-          }
-        }
-      );
+    let resultJson = {};
+    try {
+      resultJson = JSON.parse(resultText);
+    } catch(e) {
+      resultJson = { raw: resultText };
     }
-
-    // Firebase-এ ইউজারের তথ্যে OTP আপডেট করা
-    await updateFirebaseData(`users/${phone}`, {
-      reset_otp: otp,
-      otp_created_at: now
-    });
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        status: true,
-        message: "OTP সফলভাবে পাঠানো হয়েছে।"
+        status: "SUCCESS",
+        gateway_response: resultJson
       })
     };
 
@@ -144,8 +102,8 @@ exports.handler = async (event) => {
       statusCode: 500,
       headers,
       body: JSON.stringify({
-        error: "SMS পাঠানো ব্যর্থ হয়েছে",
-        details: error.response ? error.response.data : error.message
+        error: "Failed to send SMS",
+        details: error.message
       })
     };
   }
