@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const axios = require('axios');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 
@@ -10,16 +11,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Webshare Static Proxy কনফিগারেশন (45.38.107.97 আইপির জন্য)
+// ফ্রন্টএন্ডের সব ফাইল সরাসরি Render থেকেই সার্ভ করার লাইন
+app.use(express.static(path.join(__dirname, './')));
+
+// Webshare Static Proxy কনফিগারেশন (আইপি: 45.38.107.97)
 const proxyUrl = process.env.WEBSHARE_PROXY || 'http://bdhgmqzy:hbo9peyy3r88@45.38.107.97:6014';
 const httpsAgent = new HttpsProxyAgent(proxyUrl);
 
-// হোম রুট
-app.get('/', (req, res) => {
-    res.send('Pay4Smart Backend Server is Running Perfectly!');
-});
-
-// আইপি ভেরিফিকেশন রুট (ব্রাউজারে চেক করার জন্য)
+// আইপি চেক রুট
 app.get('/check-ip', async (req, res) => {
     try {
         const response = await axios.get('https://ipv4.webshare.io/', {
@@ -32,19 +31,14 @@ app.get('/check-ip', async (req, res) => {
             message: 'Static IP working properly'
         });
     } catch (error) {
-        res.status(500).json({
-            status: 'Error',
-            error: error.message
-        });
+        res.status(500).json({ status: 'Error', error: error.message });
     }
 });
 
-// PayIcon রিচার্জ API হ্যান্ডলার (প্রক্সির মাধ্যমে রিকোয়েস্ট পাঠাবে)
+// PayIcon রিচার্জ API হ্যান্ডলার (প্রক্সির মাধ্যমে 45.38.107.97 দিয়ে রিকোয়েস্ট যাবে)
 app.all(['/api/recharge', '/.netlify/functions/recharge'], async (req, res) => {
     try {
         const targetUrl = req.body.targetUrl || 'https://payicon.in/api/api_service/recharge';
-        
-        console.log(`Sending recharge request via Proxy (${req.method}) to:`, targetUrl);
 
         const response = await axios({
             method: req.method,
@@ -60,20 +54,22 @@ app.all(['/api/recharge', '/.netlify/functions/recharge'], async (req, res) => {
 
         res.json(response.data);
     } catch (error) {
-        console.error('Recharge Gateway Error:', error.response ? error.response.data : error.message);
         res.status(error.response ? error.response.status : 500).json(
             error.response ? error.response.data : { status: 'Failed', message: error.message }
         );
     }
 });
 
-// পেমেন্ট গেটওয়ে কলব্যাক / ওয়েবহুক রুট (dghost পেমেন্টের জন্য)
+// পেমেন্ট কলব্যাক রুট
 app.all(['/payment/callback', '/payment/webhook'], (req, res) => {
-    console.log('Payment Callback Received:', req.body || req.query);
     res.json({ status: 'Received', data: req.body || req.query });
 });
 
-// সার্ভার পোর্ট লিসেনার
+// সরাসরি মূল পেজ (index.html) লোড করার জন্য
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
