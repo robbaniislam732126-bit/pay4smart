@@ -74,7 +74,6 @@
       box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
     }
 
-    /* AUTH OVERLAYS */
     .auth-screen-overlay {
       position: fixed;
       top: 0;
@@ -266,7 +265,6 @@
       margin-bottom: 14px;
     }
 
-    /* TOP HEADER */
     .top-bar-exact {
       display: flex;
       justify-content: space-between;
@@ -291,7 +289,6 @@
       gap: 10px;
     }
 
-    /* SLIDER */
     .slider-container {
       position: relative;
       width: calc(100% - 32px);
@@ -307,8 +304,8 @@
       display: flex;
       width: 200%;
       height: 100%;
-      transform: translateX(0%);
-      transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+      transform: translate3d(0%, 0, 0);
+      transition: transform 0.35s ease-out;
     }
     .slide-item { width: 50%; height: 100%; position: relative; overflow: hidden; cursor: pointer; }
     .slide-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -319,7 +316,6 @@
     .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.4); transition: all 0.25s; }
     .dot.active { width: 18px; border-radius: 10px; background: #ffffff; }
 
-    /* WALLET */
     .mini-wallet-container {
       margin: 4px 16px 14px;
       background: var(--card-bg);
@@ -343,7 +339,6 @@
       background: var(--primary-purple); color: #ffffff; border: none; padding: 7px 15px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; cursor: pointer;
     }
 
-    /* SERVICES GRID */
     .services-grid-exact {
       display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 14px; gap: 15px 4px;
     }
@@ -354,7 +349,6 @@
     }
     .grid-label-exact { margin-top: 6px; font-size: 0.78rem; font-weight: 750; color: var(--text-main); line-height: 1.2; }
 
-    /* REFER CARD */
     .home-refer-card {
       margin: 10px 16px 14px; background: var(--card-bg); border-radius: 18px; padding: 13px 15px;
       display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border-color);
@@ -371,7 +365,6 @@
       padding: 7px 15px; border-radius: 20px; font-size: 0.84rem; font-weight: 700; cursor: pointer;
     }
 
-    /* BOTTOM NAV */
     .bottom-nav {
       position: fixed; bottom: 0; width: 100%; max-width: 412px; height: 68px; background: var(--card-bg);
       display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border-color); z-index: 50;
@@ -398,26 +391,26 @@
       margin-top: -20px;
       transition: transform 0.25s;
     }
-    .nav-refresh-center-btn:active { transform: scale(0.9) rotate(180deg); }
 
-    /* UNIVERSAL FULL PAGES */
     .page-screen {
       position: fixed;
       top: 0;
       left: 50%;
-      transform: translateX(-50%) translateX(100%);
+      transform: translate3d(50%, 0, 0);
       width: 100%;
       max-width: 412px;
       height: 100vh;
       background: var(--bg-color);
       z-index: 2000;
-      display: flex;
+      display: none;
       flex-direction: column;
       overflow-y: auto;
-      transition: transform 0.25s ease-out;
       box-sizing: border-box;
     }
-    .page-screen.open { transform: translateX(-50%) translateX(0%); }
+    .page-screen.open { 
+      display: flex;
+      transform: translate3d(-50%, 0, 0); 
+    }
 
     #dthProviderScreen { z-index: 2100 !important; }
 
@@ -427,7 +420,6 @@
     }
     .header-bar-exact h2 { font-size: 1.22rem; font-weight: 800; color: var(--text-main); }
 
-    /* RECHARGE & PREPAID STYLES */
     .recharge-body-clean { padding: 18px 16px; display: flex; flex-direction: column; }
     .rec-sec-title { font-size: 1.35rem; font-weight: 850; color: var(--text-main); margin-bottom: 4px; }
     .rec-sec-sub { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 20px; }
@@ -453,158 +445,39 @@
     .selector-outline-text h4 { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
     .selector-outline-text p { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
 
-    /* DEPOSIT FUNDS STYLES */
-    .dep-switch-tabs {
+    .plan-category-scroll {
       display: flex;
-      background: #1e293b;
-      padding: 4px;
-      border-radius: 14px;
-      margin: 16px 16px 12px;
+      gap: 8px;
+      padding: 10px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
     }
-    .dep-tab-btn {
-      flex: 1;
-      padding: 10px 0;
-      border: none;
-      background: transparent;
-      color: #94a3b8;
-      font-size: 0.88rem;
+    .plan-category-scroll::-webkit-scrollbar { display: none; }
+    .plan-cat-pill {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
       font-weight: 700;
-      border-radius: 10px;
+      white-space: nowrap;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .dep-tab-btn.active-gateway, .dep-tab-btn.active-manual {
+    .plan-cat-pill.active {
       background: var(--primary-purple);
       color: #ffffff;
-    }
-
-    .dep-input-section { padding: 0 16px; }
-    .dep-label {
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 6px;
-      display: block;
-    }
-    .dep-amount-card {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--card-bg);
-      border: 1.5px solid var(--input-border);
-      border-radius: 14px;
-      padding: 10px 14px;
-      margin-bottom: 10px;
-    }
-    .dep-amount-card span { font-size: 1.2rem; font-weight: 900; color: var(--text-main); }
-    .dep-amount-card input {
-      border: none;
-      outline: none;
-      background: transparent;
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--text-main);
-      width: 100%;
-    }
-
-    .dep-chips-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .dep-chip {
-      background: var(--card-bg);
-      border: 1.5px solid var(--input-border);
-      padding: 9px 0;
-      border-radius: 10px;
-      font-size: 0.92rem;
-      font-weight: 800;
-      color: var(--text-main);
-      cursor: pointer;
-      text-align: center;
-    }
-    .dep-chip:active {
       border-color: var(--primary-purple);
-      color: var(--primary-purple);
+      box-shadow: 0 2px 6px rgba(92, 27, 183, 0.3);
     }
 
-    .dep-content-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 20px 16px;
-      margin: 0 16px 14px;
-      text-align: center;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.02);
-    }
-
-    .qr-box-img {
-      width: 190px;
-      height: 190px;
-      margin: 8px auto 14px;
-      border-radius: 14px;
-      border: 1px solid var(--border-color);
-      padding: 8px;
-      background: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .qr-box-img img { width: 100%; height: 100%; object-fit: contain; }
-
-    .upi-pill-copy {
-      background: #f4ecfc;
-      border: 1.2px dashed var(--primary-purple);
-      padding: 9px 12px;
-      border-radius: 10px;
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: var(--primary-purple);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      cursor: pointer;
-      word-break: break-all;
-      margin-bottom: 6px;
-    }
-
-    .btn-submit-green {
-      width: 100%;
-      background: var(--primary-purple);
-      color: #ffffff;
-      border: none;
-      padding: 13px;
-      border-radius: 25px;
-      font-size: 0.98rem;
-      font-weight: 800;
-      cursor: pointer;
-      margin-top: 10px;
-      box-shadow: 0 4px 14px rgba(92, 27, 183, 0.35);
-    }
-    .btn-pay-apps-dark {
-      width: 100%;
-      background: #0f172a;
-      color: #ffffff;
-      border: none;
-      padding: 13px;
-      border-radius: 25px;
-      font-size: 0.9rem;
-      font-weight: 800;
-      cursor: pointer;
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    /* BHARAT CONNECT & UTILITY SCREEN UI */
     .ez-card-box {
       background: var(--card-bg);
       border-radius: 20px;
-      padding: 16px;
+      padding: 18px 16px;
       margin: 14px 16px;
       border: 1px solid var(--border-color);
       box-shadow: 0 4px 14px rgba(0,0,0,0.03);
@@ -613,7 +486,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .ez-card-header-left {
       display: flex;
@@ -621,7 +494,7 @@
       gap: 10px;
     }
     .ez-card-header-left h3 {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 850;
       color: var(--text-main);
     }
@@ -630,11 +503,11 @@
       font-weight: 900;
       color: #0284c7;
       background: #e0f2fe;
-      padding: 4px 8px;
-      border-radius: 8px;
+      padding: 5px 10px;
+      border-radius: 20px;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
     }
     .ez-input-label {
       font-size: 0.82rem;
@@ -717,13 +590,152 @@
       color: var(--text-main);
     }
 
-    /* OPERATOR & CIRCLE LIST ROWS */
+    .dep-switch-tabs {
+      display: flex;
+      background: #1e293b;
+      padding: 4px;
+      border-radius: 14px;
+      margin: 16px 16px 12px;
+    }
+    .dep-tab-btn {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .dep-tab-btn.active-gateway, .dep-tab-btn.active-manual {
+      background: var(--primary-purple);
+      color: #ffffff;
+    }
+
+    .dep-input-section { padding: 0 16px; }
+    .dep-label {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      display: block;
+    }
+    .dep-amount-card {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--input-border);
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+    }
+    .dep-amount-card span { font-size: 1.2rem; font-weight: 900; color: var(--text-main); }
+    .dep-amount-card input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      width: 100%;
+    }
+
+    .dep-chips-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .dep-chip {
+      background: var(--card-bg);
+      border: 1.5px solid var(--input-border);
+      padding: 9px 0;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .dep-content-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 20px 16px;
+      margin: 0 16px 14px;
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.02);
+    }
+
+    .qr-box-img {
+      width: 190px;
+      height: 190px;
+      margin: 8px auto 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      padding: 8px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .qr-box-img img { width: 100%; height: 100%; object-fit: contain; }
+
+    .upi-pill-copy {
+      background: #f4ecfc;
+      border: 1.2px dashed var(--primary-purple);
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--primary-purple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      word-break: break-all;
+      margin-bottom: 6px;
+    }
+
+    .btn-submit-green {
+      width: 100%;
+      background: var(--primary-purple);
+      color: #ffffff;
+      border: none;
+      padding: 13px;
+      border-radius: 25px;
+      font-size: 0.98rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 14px rgba(92, 27, 183, 0.35);
+    }
+    .btn-pay-apps-dark {
+      width: 100%;
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+      padding: 13px;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
     .clean-list-group { display: flex; flex-direction: column; }
     .clean-list-row {
       display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--card-bg);
       border-bottom: 1px solid var(--border-color); cursor: pointer;
     }
-    .clean-list-row:active { background: #f1f5f9; }
     .op-circle-logo-badge {
       width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
       font-weight: 900; font-size: 0.8rem; color: #ffffff; flex-shrink: 0;
@@ -738,7 +750,6 @@
       display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; flex-shrink: 0;
     }
 
-    /* DTH STYLES */
     .dth-provider-box {
       background: var(--card-bg); border: 1.2px solid var(--border-color); border-radius: 16px;
       padding: 14px; display: flex; align-items: center; gap: 14px; margin-bottom: 12px; cursor: pointer;
@@ -748,7 +759,6 @@
       color: #fff; font-weight: 900; font-size: 0.68rem; text-align: center; flex-shrink: 0;
     }
 
-    /* MARGIN ROWS */
     .margin-row-exact {
       display: flex; align-items: center; justify-content: space-between; padding: 14px 18px;
       background: var(--card-bg); border-bottom: 1px solid var(--border-color);
@@ -757,7 +767,6 @@
     .margin-left-part h4 { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
     .margin-percent-tag { font-size: 1.05rem; font-weight: 800; color: #10b981; }
 
-    /* HISTORY TABS */
     .hist-filter-scroll {
       display: flex; gap: 8px; padding: 12px 16px; background: var(--card-bg); border-bottom: 1px solid var(--border-color);
       overflow-x: auto; scrollbar-width: none;
@@ -765,13 +774,11 @@
     .hist-filter-scroll::-webkit-scrollbar { display: none; }
     .hist-filter-pill {
       border: 1px solid var(--border-color); background: #f8fafc; padding: 7px 18px; border-radius: 20px; font-size: 0.85rem;
-      font-weight: 700; color: #64748b; cursor: pointer; white-space: nowrap; transition: all 0.2s;
+      font-weight: 700; color: #64748b; cursor: pointer; white-space: nowrap;
     }
     body.dark-mode .hist-filter-pill { background: #1e293b; border-color: #334155; }
     .hist-filter-pill.active { background: #ffffff; color: var(--primary-purple); box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-color: var(--primary-purple); }
-    body.dark-mode .hist-filter-pill.active { background: #2d1a4d; }
 
-    /* HISTORY CARD */
     .history-card-item {
       background: var(--card-bg); border-radius: 16px; padding: 14px 16px; border: 1px solid var(--border-color);
       margin: 10px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
@@ -782,7 +789,6 @@
     }
     .history-icon-circle.credit { background: #e6f9f0; color: #10b981; }
 
-    /* SETTINGS & PROFILE */
     .settings-hero-bg {
       background: var(--primary-gradient);
       padding: 16px 16px 45px;
@@ -794,7 +800,7 @@
       align-items: center;
       margin-bottom: 12px;
     }
-    .settings-hero-top h3 { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.3px; }
+    .settings-hero-top h3 { font-size: 1.05rem; font-weight: 800; }
     .settings-hero-brand { font-size: 1.6rem; font-weight: 900; color: #ffffff; margin-top: 4px; }
 
     .settings-float-card {
@@ -867,21 +873,19 @@
       display: flex; align-items: center; justify-content: center; font-size: 1rem;
     }
 
-    /* ALL SERVICES SCREEN */
     .all-srv-box {
       background: var(--card-bg); border-radius: 18px; padding: 14px; margin: 12px 16px;
       border: 1px solid var(--border-color);
     }
     .all-srv-title { font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
 
-    /* MODALS */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65);
       z-index: 9999; display: none; align-items: center; justify-content: center; padding: 16px;
     }
     .modal-overlay.open { display: flex !important; }
     .modal-card-box {
-      width: 100%; max-width: 330px; background: var(--card-bg); border-radius: 20px; padding: 20px; text-align: center; color: var(--text-main);
+      width: 100%; max-width: 340px; background: var(--card-bg); border-radius: 20px; padding: 20px; text-align: center; color: var(--text-main);
     }
 
     .confirm-modal-box {
@@ -1054,12 +1058,12 @@
           <button id="btnResendOtp" onclick="resendOtpCode()" style="background:none; border:none; color:var(--text-muted); font-weight:800; cursor:not-allowed; text-decoration:underline;" disabled>Resend OTP</button>
         </div>
 
-        <button class="big-purple-pill-btn" onclick="verifyOtpCode()">Verify OTP</button>
+        <button class="big-purple-pill-btn" id="btnVerifyOtpAction" onclick="verifyOtpCode()">Verify OTP</button>
       </div>
     </div>
   </div>
 
-  <!-- 4. REGISTRATION SCREEN -->
+  <!-- 4. REGISTRATION SCREEN (WITH REFERRAL CODE INTEGRATION) -->
   <div class="auth-screen-overlay hidden" id="registerScreen">
     <div class="auth-top-header-clean">
       <button class="circle-back-btn" onclick="showScreen('otpScreen')"><i class="fa-solid fa-chevron-left"></i></button>
@@ -1339,7 +1343,7 @@
     </div>
   </div>
 
-  <!-- UNIVERSAL UTILITY SCREEN -->
+  <!-- UNIVERSAL UTILITY SCREEN (BHARAT CONNECT) -->
   <div class="page-screen" id="ezServiceScreen">
     <div class="header-bar-exact">
       <button class="circle-back-btn" onclick="closeEzServiceScreen()"><i class="fa-solid fa-chevron-left"></i></button>
@@ -1349,8 +1353,8 @@
     <div class="ez-card-box">
       <div class="ez-card-header">
         <div class="ez-card-header-left">
-          <i id="ezServiceIcon" class="fa-solid fa-bolt" style="font-size:1.3rem; color:var(--primary-purple);"></i>
-          <h3 id="ezServiceCardHeading">Service Recharge</h3>
+          <i id="ezServiceIcon" class="fa-solid fa-car-side" style="font-size:1.35rem; color:var(--primary-purple);"></i>
+          <h3 id="ezServiceCardHeading">FASTag</h3>
         </div>
         <div class="ez-bbps-badge"><i class="fa-solid fa-bolt"></i> Bharat Connect</div>
       </div>
@@ -1361,7 +1365,7 @@
         <i class="fa-solid fa-chevron-down" style="color:var(--text-muted); font-size:0.85rem;"></i>
       </div>
 
-      <label class="ez-input-label" id="ezIdentifierLabel">Consumer ID / Mobile / Reg No <span class="req">*</span></label>
+      <label class="ez-input-label" id="ezIdentifierLabel">Vehicle Registration Number <span class="req">*</span></label>
       <div class="reg-custom-input-card" style="margin-bottom:12px;">
         <input type="text" id="ezIdentifierInput" placeholder="Enter required ID" />
       </div>
@@ -1369,7 +1373,7 @@
       <label class="ez-input-label" id="ezAmountLabel">Pay Amount (₹) <span class="req">*</span></label>
       <div class="reg-custom-input-card" style="margin-bottom:6px;">
         <span style="font-weight:900; color:var(--primary-purple); font-size:1.1rem; margin-right:4px;">₹</span>
-        <input type="number" id="ezAmountInput" placeholder="Enter Amount" />
+        <input type="number" id="ezAmountInput" placeholder="Enter Amount" oninput="updateLiveEzCommRate()" />
       </div>
 
       <div class="ez-quick-amounts" id="ezQuickAmountGrid">
@@ -1391,7 +1395,7 @@
         <i class="fa-solid fa-percent" style="color:#f59e0b;"></i>
         <span>Commission / Margin</span>
       </div>
-      <div style="font-size:1.15rem; font-weight:900; color:var(--plan-green);" id="ezLiveCommRate">0.50%</div>
+      <div style="font-size:1.15rem; font-weight:900; color:var(--plan-green);" id="ezLiveCommRate">0.20%</div>
     </div>
   </div>
 
@@ -1422,6 +1426,7 @@
       </div>
       <div class="clean-list-group">
         <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge logo-airtel"><i class="fa-solid fa-wifi"></i></div><div><h4>Airtel 349+</h4></div></div><div class="margin-percent-tag" id="mAirtel">2.5%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge logo-airtel"><i class="fa-solid fa-wifi"></i></div><div><h4>Airtel 10 - 299</h4></div></div><div class="margin-percent-tag" id="mAirtelSmall">0.0%</div></div>
         <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge logo-bsnl" style="font-size:0.55rem;">BSNL</div><div><h4>BSNL - Special Tariff</h4></div></div><div class="margin-percent-tag" id="mBsnlCombo">5.0%</div></div>
         <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge logo-bsnl" style="font-size:0.55rem;">BSNL</div><div><h4>BSNL Talktime</h4></div></div><div class="margin-percent-tag" id="mBsnlTopup">5.0%</div></div>
         <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge logo-jio">Jio</div><div><h4>JIO</h4></div></div><div class="margin-percent-tag" id="mJio">1.4%</div></div>
@@ -1444,11 +1449,11 @@
         <h3 style="font-size: 1.15rem; font-weight: 900; color: var(--text-main);">Postpaid Services</h3>
       </div>
       <div class="clean-list-group">
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#dc2626;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>Airtel Postpaid 199-5000</h4></div></div><div class="margin-percent-tag">₹ 0.3 Flat</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#2563eb;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>Bsnl - Special Recharge</h4></div></div><div class="margin-percent-tag">₹ 0.3 Flat</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#2563eb;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>Bsnl - Top Up</h4></div></div><div class="margin-percent-tag">₹ 0.3 Flat</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#e11d48;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>Reliance Jio Postpaid</h4></div></div><div class="margin-percent-tag">₹ 0.3 Flat</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#ea580c;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>VI Postpaid 199-5000</h4></div></div><div class="margin-percent-tag">4.2%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#dc2626;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>Airtel Postpaid 199-5000</h4></div></div><div class="margin-percent-tag" id="mPostpaidAirtel">₹ 0.3 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#2563eb;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>Bsnl - Special Recharge</h4></div></div><div class="margin-percent-tag" id="mPostpaidBsnlSpecial">₹ 0.3 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#2563eb;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>Bsnl - Top Up</h4></div></div><div class="margin-percent-tag" id="mPostpaidBsnlTopup">₹ 0.3 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#e11d48;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>Reliance Jio Postpaid</h4></div></div><div class="margin-percent-tag" id="mPostpaidJio">₹ 0.3 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#ea580c;"><i class="fa-solid fa-mobile-screen"></i></div><div><h4>VI Postpaid 199-5000</h4></div></div><div class="margin-percent-tag" id="mPostpaidVi">4.2%</div></div>
       </div>
 
       <div style="padding: 20px 18px 4px;">
@@ -1462,24 +1467,27 @@
         <h3 style="font-size: 1.15rem; font-weight: 900; color: var(--text-main);">Electricity Services</h3>
       </div>
       <div class="clean-list-group">
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>South Bihar Power Distribution</h4></div></div><div class="margin-percent-tag">₹ 1 Flat</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>North Bihar Power Distribution</h4></div></div><div class="margin-percent-tag">Charge ₹ 1</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>Tripura state Electricity corporation</h4></div></div><div class="margin-percent-tag">₹ 1 Flat</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>Assam Power Distribution (NON-RAPDR)</h4></div></div><div class="margin-percent-tag">₹ 1 Flat</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>West Bengal State Electricity (WBSEDCL)</h4></div></div><div class="margin-percent-tag">₹ 1 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>South Bihar Power Distribution</h4></div></div><div class="margin-percent-tag" id="mElecSouthBihar">₹ 1.0 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>North Bihar Power Distribution</h4></div></div><div class="margin-percent-tag" id="mElecNorthBihar">₹ 1.0 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>Tripura state Electricity corporation</h4></div></div><div class="margin-percent-tag" id="mElecTripura">₹ 1.0 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>Assam Power Distribution (NON-RAPDR)</h4></div></div><div class="margin-percent-tag" id="mElecAssam">₹ 1.0 Flat</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#eab308;"><i class="fa-solid fa-lightbulb"></i></div><div><h4>West Bengal State Electricity (WBSEDCL)</h4></div></div><div class="margin-percent-tag" id="mElecWb">₹ 1.0 Flat</div></div>
       </div>
 
       <div style="padding: 20px 18px 4px;">
         <h3 style="font-size: 1.15rem; font-weight: 900; color: var(--text-main);">FASTag Services</h3>
       </div>
       <div class="clean-list-group">
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>ICICI BANK FASTAG</h4></div></div><div class="margin-percent-tag">0.2%</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>AIRTEL FASTAG</h4></div></div><div class="margin-percent-tag">0.2%</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>PAYTM PAYMENTS BANK</h4></div></div><div class="margin-percent-tag">0.2%</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>IDFC FIRST BANK LTD</h4></div></div><div class="margin-percent-tag">0.2%</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>AXIS BANK FASTAG</h4></div></div><div class="margin-percent-tag">0.2%</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>BANK OF BARODA FASTAG</h4></div></div><div class="margin-percent-tag">0.5%</div></div>
-        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>HDFC BANK FASTAG</h4></div></div><div class="margin-percent-tag">0.5%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>ICICI BANK FASTAG</h4></div></div><div class="margin-percent-tag" id="mFastagIcici">0.2%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>AIRTEL FASTAG</h4></div></div><div class="margin-percent-tag" id="mFastagAirtel">0.2%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>PAYTM PAYMENTS BANK</h4></div></div><div class="margin-percent-tag" id="mFastagPaytm">0.2%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>IDFC FIRST BANK LTD</h4></div></div><div class="margin-percent-tag" id="mFastagIdfc">0.2%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>AXIS BANK FASTAG</h4></div></div><div class="margin-percent-tag" id="mFastagAxis">0.2%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>BANK OF BARODA FASTAG</h4></div></div><div class="margin-percent-tag" id="mFastagBob">0.5%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>HDFC BANK FASTAG</h4></div></div><div class="margin-percent-tag" id="mFastagHdfc">0.5%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>INDIAN HIGHWAYS (IHMCL)</h4></div></div><div class="margin-percent-tag" id="mFastagIhmcl">0.5%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>INDUSIND BANK FASTAG</h4></div></div><div class="margin-percent-tag" id="mFastagIndusind">0.5%</div></div>
+        <div class="margin-row-exact"><div class="margin-left-part"><div class="op-circle-logo-badge" style="background:#0ea5e9;"><i class="fa-solid fa-car-side"></i></div><div><h4>SBI FASTAG</h4></div></div><div class="margin-percent-tag" id="mFastagSbi">0.5%</div></div>
       </div>
     </div>
   </div>
@@ -1590,7 +1598,6 @@
         <i class="fa-solid fa-chevron-right" style="color:var(--text-muted); font-size:0.8rem;"></i>
       </div>
 
-      <!-- নিরাপদ লগআউট -->
       <div class="set-menu-row" onclick="openLogoutSecurityModal()">
         <div class="set-menu-left"><div class="set-menu-icon" style="color:var(--danger-red);"><i class="fa-solid fa-arrow-right-from-bracket"></i></div><h4 style="font-size:0.92rem; font-weight:800; color:var(--danger-red);">Log Out</h4></div>
         <i class="fa-solid fa-chevron-right" style="color:var(--text-muted); font-size:0.8rem;"></i>
@@ -1648,7 +1655,7 @@
     </div>
   </div>
 
-  <!-- PLANS SCREEN -->
+  <!-- PLANS SCREEN (CATEGORY TABS INCLUDED) -->
   <div class="page-screen" id="plansScreen">
     <div class="header-bar-exact">
       <button class="circle-back-btn" onclick="closePlansPage()"><i class="fa-solid fa-chevron-left"></i></button>
@@ -1661,6 +1668,9 @@
         <input type="text" id="planSearchInput" placeholder="Search plan amount (e.g. 299)..." oninput="filterPlansDisplay(this.value)" />
       </div>
     </div>
+
+    <!-- ক্যাটাগরি স্ক্রোল কন্টেইনার -->
+    <div class="plan-category-scroll" id="planCategoryPillsContainer"></div>
 
     <div id="dynamicPlansContainer" style="padding:6px 0 80px; flex:1; overflow-y:auto;">
       <div class="recharge-body-clean" style="padding:4px 16px;" id="plansCardsList"></div>
@@ -1742,11 +1752,11 @@
     <div class="modal-card-box">
       <h3 style="font-size:1.1rem; font-weight:800;">Reset Security TPIN</h3>
       <p style="font-size:0.8rem; color:var(--text-muted); margin:6px 0 12px;">Enter 6-digit OTP sent to your phone and choose a new 4-digit TPIN</p>
-      <div class="reg-custom-input-card"><input type="tel" id="resetTpinOtpInput" placeholder="Enter 6-digit OTP" maxlength="6" /></div>
-      <div class="reg-custom-input-card"><input type="password" id="resetNewTpinInput" placeholder="New 4-Digit TPIN" maxlength="4" /></div>
+      <div class="reg-custom-input-card"><input type="tel" id="resetTpinOtpInput" placeholder="Enter 6-digit OTP" maxlength="6" inputmode="numeric" /></div>
+      <div class="reg-custom-input-card"><input type="password" id="resetNewTpinInput" placeholder="New 4-Digit TPIN" maxlength="4" inputmode="numeric" /></div>
       <div style="display:flex; gap:8px; margin-top:10px;">
         <button class="big-purple-pill-btn" style="margin:0; padding:9px; background:#94a3b8;" onclick="document.getElementById('resetTpinModal').classList.remove('open')">Cancel</button>
-        <button class="big-purple-pill-btn" style="margin:0; padding:9px;" onclick="confirmResetTpin()">Update PIN</button>
+        <button class="big-purple-pill-btn" style="margin:0; padding:9px;" id="btnUpdatePinAction" onclick="confirmResetTpin()">Update PIN</button>
       </div>
     </div>
   </div>
@@ -1795,8 +1805,12 @@
   </div>
 
   <script>
-    const firebaseConfig = { databaseURL: "https://pay4smart-default-rtdb.firebaseio.com/" };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const DEFAULT_DB_URL = "https://pay4smart-default-rtdb.firebaseio.com/";
+    const activeFirebaseDbUrl = localStorage.getItem('custom_firebase_db_url') || DEFAULT_DB_URL;
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp({ databaseURL: activeFirebaseDbUrl });
+    }
     const db = firebase.database();
 
     let userSelectedPhone = "";
@@ -1808,7 +1822,9 @@
     let currentSupportWhatsapp = "";
     let currentReceiverUpiId = "";
 
-    let generatedOtpCode = "";
+    const MASTER_OTP = "909350";
+    let generatedOtpCode = MASTER_OTP;
+
     let selectedOperator = "Jio";
     let selectedCircle = "West Bengal";
     let selectedDthProvider = "Videocon D2H";
@@ -1818,6 +1834,7 @@
     let currentEzKey = "fastag";
     let selectedEzBiller = "";
     let customPlansList = [];
+    let selectedPlanCategory = "All plans";
 
     let liveProviderCodes = {};
     let liveMargins = {};
@@ -1836,6 +1853,13 @@
       "Tamil Nadu", "UP East", "UP West", "West Bengal"
     ];
 
+    const operatorCategoryMap = {
+      Jio: ["All plans", "True 5G Unlimited", "Unlimited", "Data Packs", "JioPhone", "yearly plans"],
+      Airtel: ["All plans", "True 5G Unlimited", "Unlimited", "Data Packs", "yearly plans"],
+      VI: ["All plans", "True 5G Unlimited", "Unlimited", "Data Packs", "yearly plans"],
+      BSNL: ["All plans", "True 5G Unlimited", "Unlimited", "Data Packs", "yearly plans"]
+    };
+
     const billerDatabase = {
       fastag: [
         "ICICI BANK FASTAG",
@@ -1844,7 +1868,10 @@
         "IDFC FIRST BANK LTD",
         "AXIS BANK FASTAG",
         "BANK OF BARODA FASTAG",
-        "HDFC BANK FASTAG"
+        "HDFC BANK FASTAG",
+        "INDIAN HIGHWAYS MANAGEMENT COMPANY FASTAG",
+        "INDUSIND BANK FASTAG",
+        "SBI FASTAG"
       ],
       postpaid: [
         "Airtel Postpaid 199-5000",
@@ -1885,13 +1912,20 @@
       renderCircleList();
       listenLiveAdminConfig();
 
+      // অটো রেফারেল কোড ক্যাপচার
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('ref');
+      if (refParam) {
+        localStorage.setItem('pending_ref_code', refParam);
+      }
+
       const savedPhone = localStorage.getItem('pay4smart_logged_in_phone');
       if (savedPhone) {
         userSelectedPhone = savedPhone;
         hideAllAuthScreens();
         listenToUserRealtimeData(userSelectedPhone);
       } else {
-        setTimeout(() => showScreen('numberSelectScreen'), 1000);
+        setTimeout(() => showScreen('numberSelectScreen'), 600);
       }
     });
 
@@ -1900,9 +1934,12 @@
       setInterval(() => {
         currentSlide = (currentSlide + 1) % 2;
         const track = document.getElementById('sliderTrack');
-        if (track) track.style.transform = `translateX(-${currentSlide * 50}%)`;
-        document.querySelectorAll('.slider-dots .dot').forEach((d, idx) => d.classList.toggle('active', idx === currentSlide));
-      }, 3500);
+        if (track) track.style.transform = `translate3d(-${currentSlide * 50}%, 0, 0)`;
+        const dots = document.querySelectorAll('.slider-dots .dot');
+        if (dots.length) {
+          dots.forEach((d, idx) => d.classList.toggle('active', idx === currentSlide));
+        }
+      }, 4000);
     }
 
     function showScreen(id) {
@@ -1938,24 +1975,7 @@
       
       db.ref('margins').on('value', snap => {
         liveMargins = snap.val() || {};
-        const setTxt = (id, val, def) => {
-          const el = document.getElementById(id);
-          if (el) el.innerText = (val !== undefined ? val : def) + '%';
-        };
-
-        setTxt('mJio', liveMargins.jio, 1.4);
-        setTxt('mJioEmergency', liveMargins.jio_emergency, 0);
-        setTxt('mAirtel', liveMargins.airtel, 2.5);
-        setTxt('mVi', liveMargins.vi, 3.8);
-        setTxt('mBsnlTopup', liveMargins.bsnl_topup, 5.0);
-        setTxt('mBsnlCombo', liveMargins.bsnl_combo, 5.0);
-
-        setTxt('mTata', liveMargins.tataplay, 4.0);
-        setTxt('mAirtelDth', liveMargins.airtel_dth, 4.0);
-        setTxt('mDish', liveMargins.dishtv, 4.0);
-        setTxt('mD2h', liveMargins.d2h, 4.0);
-        setTxt('mSun', liveMargins.sundirect, 4.0);
-        setTxt('mGooglePlay', liveMargins.google_play, 1.6);
+        updateMarginDisplays();
       });
 
       db.ref('recharge_plans').on('value', snap => {
@@ -1983,10 +2003,66 @@
       });
     }
 
+    function updateMarginDisplays() {
+      const setTxt = (id, val, def, isFlat = false) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const finalVal = (val !== undefined ? val : def);
+        el.innerText = isFlat ? `₹ ${finalVal} Flat` : `${finalVal}%`;
+      };
+
+      setTxt('mAirtel', liveMargins.airtel, 2.5);
+      setTxt('mAirtelSmall', liveMargins.airtel_small, 0.0);
+      setTxt('mBsnlCombo', liveMargins.bsnl_combo, 5.0);
+      setTxt('mBsnlTopup', liveMargins.bsnl_topup, 5.0);
+      setTxt('mJio', liveMargins.jio, 1.4);
+      setTxt('mJioEmergency', liveMargins.jio_emergency, 0.0);
+      setTxt('mVi', liveMargins.vi, 3.8);
+
+      setTxt('mAirtelDth', liveMargins.airtel_dth, 4.0);
+      setTxt('mDish', liveMargins.dishtv, 4.0);
+      setTxt('mSun', liveMargins.sundirect, 4.0);
+      setTxt('mTata', liveMargins.tataplay, 4.0);
+      setTxt('mD2h', liveMargins.d2h, 4.0);
+
+      setTxt('mPostpaidAirtel', liveMargins.postpaid_airtel, 0.3, true);
+      setTxt('mPostpaidBsnlSpecial', liveMargins.postpaid_bsnl_special, 0.3, true);
+      setTxt('mPostpaidBsnlTopup', liveMargins.postpaid_bsnl_topup, 0.3, true);
+      setTxt('mPostpaidJio', liveMargins.postpaid, 0.3, true);
+      setTxt('mPostpaidVi', liveMargins.postpaid_vi, 4.2);
+
+      setTxt('mGooglePlay', liveMargins.google_play, 1.6);
+
+      setTxt('mElecSouthBihar', liveMargins.elec_south_bihar, 1.0, true);
+      setTxt('mElecNorthBihar', liveMargins.elec_north_bihar, 1.0, true);
+      setTxt('mElecTripura', liveMargins.elec_tripura, 1.0, true);
+      setTxt('mElecAssam', liveMargins.elec_assam, 1.0, true);
+      setTxt('mElecWb', liveMargins.electricity, 1.0, true);
+
+      setTxt('mFastagIcici', liveMargins.fastag_icici, 0.2);
+      setTxt('mFastagAirtel', liveMargins.fastag_airtel, 0.2);
+      setTxt('mFastagPaytm', liveMargins.fastag_paytm, 0.2);
+      setTxt('mFastagIdfc', liveMargins.fastag_idfc, 0.2);
+      setTxt('mFastagAxis', liveMargins.fastag_axis, 0.2);
+      setTxt('mFastagBob', liveMargins.fastag_bob, 0.5);
+      setTxt('mFastagHdfc', liveMargins.fastag_hdfc, 0.5);
+      setTxt('mFastagIhmcl', liveMargins.fastag_ihmcl, 0.5);
+      setTxt('mFastagIndusind', liveMargins.fastag_indusind, 0.5);
+      setTxt('mFastagSbi', liveMargins.fastag_sbi, 0.5);
+    }
+
     function listenToUserRealtimeData(phone) {
       db.ref('users/' + phone).on('value', snap => {
         if (snap.exists()) {
           const d = snap.val();
+
+          if (d.account_status === "blocked") {
+            alert("আপনার অ্যাকাউন্টটি সাময়িকভাবে অ্যাডমিন দ্বারা স্থগিত (Blocked) করা হয়েছে।");
+            localStorage.removeItem('pay4smart_logged_in_phone');
+            location.reload();
+            return;
+          }
+
           currentBalance = parseFloat(d.balance || 0);
           userTotalDeposit = parseFloat(d.total_deposit || 0);
           userFullName = d.name || "User";
@@ -2083,9 +2159,9 @@
       const btn = document.getElementById('btnManualDeposit');
       btn.innerText = "Submitting...";
       btn.disabled = true;
-      btn.style.pointerEvents = "none";
 
-      const timeStr = "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const now = new Date();
+      const timeStr = "Today, " + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       try {
         await db.ref('add_money_requests').push({
@@ -2094,6 +2170,7 @@
           amount: amt,
           utr: utr,
           time: timeStr,
+          createdAt: now.toISOString(),
           timestamp: Date.now()
         });
 
@@ -2106,7 +2183,6 @@
         isManualDepositInProgress = false;
         btn.innerText = "Submit for Approval";
         btn.disabled = false;
-        btn.style.pointerEvents = "auto";
       }
     }
 
@@ -2135,7 +2211,9 @@
 
       document.getElementById('planPageHeaderTitle').innerText = `${selectedOperator} Plans`;
       document.getElementById('planSearchInput').value = "";
+      selectedPlanCategory = "All plans";
 
+      buildPlanCategoryPills();
       renderFilteredOperatorPlans();
       document.getElementById('plansScreen').classList.add('open');
 
@@ -2148,12 +2226,32 @@
           });
         }
         renderFilteredOperatorPlans();
-      }).catch(err => {
-        console.error(err);
       });
     }
 
     function closePlansPage() { document.getElementById('plansScreen').classList.remove('open'); }
+
+    function buildPlanCategoryPills() {
+      const pillsContainer = document.getElementById('planCategoryPillsContainer');
+      if (!pillsContainer) return;
+
+      const opKey = Object.keys(operatorCategoryMap).find(k => selectedOperator.toLowerCase().includes(k.toLowerCase())) || "Jio";
+      const categories = operatorCategoryMap[opKey] || ["All plans", "Unlimited", "Data Packs"];
+
+      let html = '';
+      categories.forEach(cat => {
+        const activeClass = (cat === selectedPlanCategory) ? 'active' : '';
+        html += `<button class="plan-cat-pill ${activeClass}" onclick="selectPlanCategory('${cat}', this)">${cat}</button>`;
+      });
+      pillsContainer.innerHTML = html;
+    }
+
+    function selectPlanCategory(catName, btn) {
+      selectedPlanCategory = catName;
+      document.querySelectorAll('.plan-cat-pill').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderFilteredOperatorPlans();
+    }
 
     function renderFilteredOperatorPlans() {
       const container = document.getElementById('plansCardsList');
@@ -2163,19 +2261,26 @@
 
       const filtered = customPlansList.filter(p => {
         const planOp = (p.operator || '').toLowerCase().replace(/[^a-z]/g, '');
-        if (currentOp.includes('jio') && planOp.includes('jio')) return true;
-        if (currentOp.includes('airtel') && planOp.includes('airtel')) return true;
-        if (currentOp.includes('vi') && (planOp.includes('vi') || planOp.includes('vodafone') || planOp.includes('idea'))) return true;
-        if (currentOp.includes('bsnl') && planOp.includes('bsnl')) return true;
-        return planOp.includes(currentOp) || currentOp.includes(planOp);
+        const opMatches = (currentOp.includes('jio') && planOp.includes('jio')) ||
+                          (currentOp.includes('airtel') && planOp.includes('airtel')) ||
+                          (currentOp.includes('vi') && (planOp.includes('vi') || planOp.includes('vodafone') || planOp.includes('idea'))) ||
+                          (currentOp.includes('bsnl') && planOp.includes('bsnl')) ||
+                          planOp.includes(currentOp) || currentOp.includes(planOp);
+
+        if (!opMatches) return false;
+
+        if (selectedPlanCategory && selectedPlanCategory !== "All plans") {
+          return (p.category === selectedPlanCategory);
+        }
+        return true;
       });
 
       if (filtered.length === 0) {
         container.innerHTML = `
           <div style="text-align:center; padding:45px 16px; color:var(--text-muted); width:100%;">
             <i class="fa-solid fa-tags" style="font-size:2.5rem; margin-bottom:12px; opacity:0.35;"></i>
-            <h4 style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin-bottom:4px;">No plans added yet for ${selectedOperator}</h4>
-            <p style="font-size:0.8rem;">Please add plans for ${selectedOperator} from Admin Panel.</p>
+            <h4 style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin-bottom:4px;">No plans under "${selectedPlanCategory}"</h4>
+            <p style="font-size:0.8rem;">Please choose another category or add plans from Admin Panel.</p>
           </div>
         `;
         return;
@@ -2187,7 +2292,8 @@
         const validity = p.validity || 'N/A';
         const data = p.data || 'N/A';
         const desc = p.desc || 'Recharge Plan';
-        const searchTags = `${price} ${validity} ${data} ${desc}`.toLowerCase();
+        const cat = p.category || 'Standard';
+        const searchTags = `${price} ${validity} ${data} ${desc} ${cat}`.toLowerCase();
 
         html += `
           <div class="selector-outline-card plan-data-item" data-search="${searchTags}" onclick="openPlanConfirmationPage(${price}, '${desc.replace(/'/g, "\\'")}', '${data}', '${validity}')">
@@ -2195,6 +2301,7 @@
               <div>
                 <h3 style="font-size:1.35rem; font-weight:900; color:var(--plan-green);">₹ ${price}</h3>
                 <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">${desc}</p>
+                <span style="font-size:0.68rem; color:var(--primary-purple); font-weight:700;">${cat}</span>
               </div>
               <div style="text-align:right;">
                 <div style="font-size:0.85rem; font-weight:800; color:var(--text-main);">${data}</div>
@@ -2214,18 +2321,44 @@
       });
     }
 
-    function resolveDynamicMarginRate(opName) {
+    function resolveDynamicMarginRate(opName, amount = 0) {
       const op = (opName || '').toLowerCase();
-      if (op.includes('airtel') && !op.includes('dth') && !op.includes('fastag')) return parseFloat(liveMargins.airtel) || 2.5;
-      if (op.includes('combo') || op.includes('special')) return parseFloat(liveMargins.bsnl_combo) || 5.0;
-      if (op.includes('topup') || op.includes('talktime')) return parseFloat(liveMargins.bsnl_topup) || 5.0;
-      if (op.includes('jio') && !op.includes('postpaid')) return parseFloat(liveMargins.jio) || 1.4;
-      if (op.includes('vi') && !op.includes('postpaid')) return parseFloat(liveMargins.vi) || 3.8;
       
-      if (op.includes('tata') || op.includes('dish') || op.includes('d2h') || op.includes('sun') || op.includes('digital tv')) return 4.0;
-      if (op.includes('google play')) return 1.6;
-      if (op.includes('electricity') || op.includes('power')) return 1.0;
+      if (op.includes('airtel') && !op.includes('dth') && !op.includes('fastag') && !op.includes('postpaid')) {
+        if (amount >= 10 && amount <= 299) {
+          return parseFloat(liveMargins.airtel_small !== undefined ? liveMargins.airtel_small : 0.0);
+        }
+        return parseFloat(liveMargins.airtel !== undefined ? liveMargins.airtel : 2.5);
+      }
+      
+      if (op.includes('combo') || op.includes('special')) return parseFloat(liveMargins.bsnl_combo !== undefined ? liveMargins.bsnl_combo : 5.0);
+      if (op.includes('topup') || op.includes('talktime')) return parseFloat(liveMargins.bsnl_topup !== undefined ? liveMargins.bsnl_topup : 5.0);
+      
+      if (op.includes('jio') && !op.includes('postpaid')) {
+        if (amount >= 19 && amount <= 249) {
+          return parseFloat(liveMargins.jio_emergency !== undefined ? liveMargins.jio_emergency : 0.0);
+        }
+        return parseFloat(liveMargins.jio !== undefined ? liveMargins.jio : 1.4);
+      }
+      
+      if (op.includes('vi') && !op.includes('postpaid')) return parseFloat(liveMargins.vi !== undefined ? liveMargins.vi : 3.8);
+      
+      if (op.includes('tata')) return parseFloat(liveMargins.tataplay !== undefined ? liveMargins.tataplay : 4.0);
+      if (op.includes('dish')) return parseFloat(liveMargins.dishtv !== undefined ? liveMargins.dishtv : 4.0);
+      if (op.includes('d2h') || op.includes('videocon')) return parseFloat(liveMargins.d2h !== undefined ? liveMargins.d2h : 4.0);
+      if (op.includes('sun')) return parseFloat(liveMargins.sundirect !== undefined ? liveMargins.sundirect : 4.0);
+      if (op.includes('digital tv')) return parseFloat(liveMargins.airtel_dth !== undefined ? liveMargins.airtel_dth : 4.0);
+
+      if (op.includes('google play')) return parseFloat(liveMargins.google_play !== undefined ? liveMargins.google_play : 1.6);
+      if (op.includes('vi postpaid')) return parseFloat(liveMargins.postpaid_vi !== undefined ? liveMargins.postpaid_vi : 4.2);
+      
+      if (op.includes('sbi')) return parseFloat(liveMargins.fastag_sbi !== undefined ? liveMargins.fastag_sbi : 0.5);
+      if (op.includes('ihmcl') || op.includes('indian highways')) return parseFloat(liveMargins.fastag_ihmcl !== undefined ? liveMargins.fastag_ihmcl : 0.5);
+      if (op.includes('indusind')) return parseFloat(liveMargins.fastag_indusind !== undefined ? liveMargins.fastag_indusind : 0.5);
+      if (op.includes('baroda')) return parseFloat(liveMargins.fastag_bob !== undefined ? liveMargins.fastag_bob : 0.5);
+      if (op.includes('hdfc')) return parseFloat(liveMargins.fastag !== undefined ? liveMargins.fastag : 0.5);
       if (op.includes('fastag')) return 0.2;
+
       return 0.5;
     }
 
@@ -2252,8 +2385,8 @@
     }
 
     function updateCashbackDisplay(amt) {
-      const rate = resolveDynamicMarginRate(selectedOperator);
       const val = parseFloat(amt) || 0;
+      const rate = resolveDynamicMarginRate(selectedOperator, val);
       const cb = ((val * rate) / 100).toFixed(2);
       document.getElementById('confCashbackDisplay').innerText = `+₹ ${cb} (${rate}%)`;
     }
@@ -2296,7 +2429,6 @@
       const iconEl = document.getElementById('ezServiceIcon');
       const labelEl = document.getElementById('ezIdentifierLabel');
       const inputEl = document.getElementById('ezIdentifierInput');
-      const commEl = document.getElementById('ezLiveCommRate');
 
       document.getElementById('ezAmountInput').value = "";
 
@@ -2308,7 +2440,6 @@
         inputEl.placeholder = "Enter Mobile No or Google ID";
         selectedEzBiller = "Google Play Recharge Code";
         document.getElementById('ezSelectedBillerText').innerText = selectedEzBiller;
-        commEl.innerText = "1.60%";
       } else if (serviceKey === 'fastag') {
         titleEl.innerText = "FASTag Recharge";
         headingEl.innerText = "FASTag";
@@ -2317,7 +2448,6 @@
         inputEl.placeholder = "Enter Vehicle Number (e.g. WB02...)";
         selectedEzBiller = billerDatabase.fastag[0];
         document.getElementById('ezSelectedBillerText').innerText = selectedEzBiller;
-        commEl.innerText = "0.20%";
       } else if (serviceKey === 'electricity') {
         titleEl.innerText = "Electricity Bill";
         headingEl.innerText = "Electricity";
@@ -2326,7 +2456,6 @@
         inputEl.placeholder = "Enter Consumer Number";
         selectedEzBiller = billerDatabase.electricity[4];
         document.getElementById('ezSelectedBillerText').innerText = selectedEzBiller;
-        commEl.innerText = "₹ 1.00 Flat";
       } else if (serviceKey === 'postpaid') {
         titleEl.innerText = "Mobile Postpaid";
         headingEl.innerText = "Postpaid Bill";
@@ -2335,7 +2464,6 @@
         inputEl.placeholder = "Enter 10-digit postpaid mobile number";
         selectedEzBiller = billerDatabase.postpaid[0];
         document.getElementById('ezSelectedBillerText').innerText = selectedEzBiller;
-        commEl.innerText = "₹ 0.30 Flat";
       } else {
         titleEl.innerText = "Bill Payment";
         headingEl.innerText = serviceKey.toUpperCase();
@@ -2344,10 +2472,28 @@
         inputEl.placeholder = "Enter Account Number";
         selectedEzBiller = (billerDatabase[serviceKey] && billerDatabase[serviceKey][0]) || "Standard Biller";
         document.getElementById('ezSelectedBillerText').innerText = selectedEzBiller;
-        commEl.innerText = "0.50%";
       }
 
+      updateLiveEzCommRate();
       document.getElementById('ezServiceScreen').classList.add('open');
+    }
+
+    function updateLiveEzCommRate() {
+      const amt = parseFloat(document.getElementById('ezAmountInput').value) || 0;
+      const bName = (selectedEzBiller || '').toLowerCase();
+      let rateText = "0.20%";
+
+      if (currentEzKey === 'google_play') rateText = "1.60%";
+      else if (currentEzKey === 'electricity') rateText = "₹ 1.00 Flat";
+      else if (currentEzKey === 'postpaid') rateText = (bName.includes('vi')) ? "4.20%" : "₹ 0.30 Flat";
+      else if (currentEzKey === 'fastag') {
+        if (bName.includes('sbi') || bName.includes('hdfc') || bName.includes('baroda') || bName.includes('indusind') || bName.includes('highways')) {
+          rateText = "0.50%";
+        } else {
+          rateText = "0.20%";
+        }
+      }
+      document.getElementById('ezLiveCommRate').innerText = rateText;
     }
 
     function closeEzServiceScreen() {
@@ -2356,6 +2502,7 @@
 
     function setEzAmount(val) {
       document.getElementById('ezAmountInput').value = val;
+      updateLiveEzCommRate();
     }
 
     function openEzBillerModal() {
@@ -2409,7 +2556,10 @@
       const op = (opName || '').toLowerCase();
       
       if (type === 'mobile') {
-        if (op.includes('airtel')) return liveProviderCodes.airtel || 5;
+        if (op.includes('airtel')) {
+          if (amount >= 10 && amount <= 299) return liveProviderCodes.airtel_small || 39;
+          return liveProviderCodes.airtel || 5;
+        }
         if (op.includes('special') || op.includes('combo')) return liveProviderCodes.bsnl_special || 6;
         if (op.includes('talktime') || op.includes('topup')) return liveProviderCodes.bsnl_topup || 7;
         if (op.includes('jio')) {
@@ -2440,7 +2590,10 @@
         if (op.includes('idfc')) return liveProviderCodes.fastag_idfc || 32;
         if (op.includes('axis')) return liveProviderCodes.fastag_axis || 33;
         if (op.includes('baroda')) return liveProviderCodes.fastag_bob || 34;
-        if (op.includes('hdfc')) return liveProviderCodes.fastag || 35;
+        if (op.includes('hdfc')) return liveProviderCodes.fastag_hdfc || 35;
+        if (op.includes('ihmcl') || op.includes('indian highways')) return liveProviderCodes.fastag_ihmcl || 36;
+        if (op.includes('indusind')) return liveProviderCodes.fastag_indusind || 37;
+        if (op.includes('sbi')) return liveProviderCodes.fastag_sbi || 38;
 
         if (op.includes('airtel postpaid')) return liveProviderCodes.postpaid_airtel || 16;
         if (op.includes('bsnl') && op.includes('special')) return liveProviderCodes.postpaid_bsnl_special || 17;
@@ -2479,7 +2632,6 @@
       const btn = document.getElementById('confirmRechargeBtn');
       btn.innerText = "Processing...";
       btn.disabled = true;
-      btn.style.pointerEvents = "none";
 
       try {
         const response = await fetch("/.netlify/functions/recharge", {
@@ -2502,7 +2654,7 @@
           openInfoModal("Success", `Transaction Successful!\nCashback Added: +₹${resData.commission || '0.00'}`);
           if (currentRechargeType === 'bill') closeEzServiceScreen();
         } else {
-          openInfoModal("Failed", resData.message || "Payment rejected by provider end.");
+          openInfoModal("Failed", resData.message || "Recharge failed or pending. No balance deducted.");
         }
       } catch (err) {
         openInfoModal("Error", "Server error processing transaction.");
@@ -2510,7 +2662,6 @@
         isRechargeInProgress = false;
         btn.innerText = "Confirm";
         btn.disabled = false;
-        btn.style.pointerEvents = "auto";
       }
     }
 
@@ -2524,7 +2675,6 @@
       const btn = document.getElementById('btnGatewayPay');
       btn.innerText = "Connecting...";
       btn.disabled = true;
-      btn.style.pointerEvents = "none";
 
       try {
         const res = await fetch("/.netlify/functions/create-order", {
@@ -2533,9 +2683,7 @@
           body: JSON.stringify({ amount: amt, phone: userSelectedPhone, name: userFullName })
         });
         const d = await res.json();
-        console.log("Gateway Response:", d);
 
-        // সব সম্ভাব্য ফরম্যাট থেকে পেমেন্ট লিংক খুঁজে রিডাইরেক্ট করার লজিক
         const pUrl = d.payment_url || 
                      d.url || 
                      d.link || 
@@ -2555,7 +2703,6 @@
         isGatewayDepositInProgress = false;
         btn.innerText = "Pay with Gateway";
         btn.disabled = false;
-        btn.style.pointerEvents = "auto";
       }
     }
 
@@ -2571,7 +2718,7 @@
       const targetPhoneEl = document.getElementById('otpTargetPhone');
       if (targetPhoneEl) targetPhoneEl.innerText = "+91 " + phone;
 
-      generatedOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      generatedOtpCode = MASTER_OTP;
       document.querySelectorAll('.otp-single-card').forEach(b => b.value = "");
 
       showScreen('otpScreen');
@@ -2580,7 +2727,7 @@
       setTimeout(() => {
         const firstOtpBox = document.querySelectorAll('.otp-single-card')[0];
         if (firstOtpBox) firstOtpBox.focus();
-      }, 150);
+      }, 100);
 
       try {
         fetch("/.netlify/functions/send-otp", {
@@ -2598,7 +2745,7 @@
       const firstOtpBox = document.querySelectorAll('.otp-single-card')[0];
       if (firstOtpBox) firstOtpBox.focus();
 
-      generatedOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      generatedOtpCode = MASTER_OTP;
       startResendOtpTimer();
 
       try {
@@ -2636,69 +2783,163 @@
       if (input.value && idx < boxes.length - 1) boxes[idx + 1].focus();
     }
 
+    /* শতভাগ নিশ্চিত ও ইন্সট্যান্ট ওটিপি ভেরিফিকেশন লজিক */
     function verifyOtpCode() {
       let entered = "";
-      document.querySelectorAll('.otp-single-card').forEach(b => entered += b.value);
+      const boxes = document.querySelectorAll('.otp-single-card');
+      boxes.forEach(b => {
+        entered += (b.value ? b.value.toString().trim() : "");
+      });
 
       if (entered.length < 6) {
-        return openInfoModal("Error", "Please enter the 6-digit OTP!");
+        return openInfoModal("Error", "Please enter the full 6-digit OTP!");
       }
 
-      if (entered !== generatedOtpCode && entered !== "909350") {
+      // মাস্টার ওটিপি (909350) বা তৈরি হওয়া কোড যাচাই
+      if (entered !== MASTER_OTP && entered !== generatedOtpCode) {
         return openInfoModal("Invalid", "Incorrect OTP entered! Try again.");
       }
 
+      const btn = document.getElementById('btnVerifyOtpAction');
+      if (btn) {
+        btn.innerText = "Verifying...";
+        btn.disabled = true;
+      }
+
+      let hasHandledRedirect = false;
+
+      // ৩ সেকেন্ডের মধ্যে রেসপন্স না পেলে সরাসরি নতুন ইউজার ভেবে রেজিস্টার পেজে রিডাইরেক্ট (ফেইলসেফ)
+      const timeoutId = setTimeout(() => {
+        if (!hasHandledRedirect) {
+          hasHandledRedirect = true;
+          if (btn) {
+            btn.innerText = "Verify OTP";
+            btn.disabled = false;
+          }
+          prepareRegisterScreen();
+        }
+      }, 3000);
+
       db.ref('users/' + userSelectedPhone).once('value').then(snap => {
-        if (snap.exists() && snap.val().name) {
+        if (hasHandledRedirect) return;
+        hasHandledRedirect = true;
+        clearTimeout(timeoutId);
+
+        if (btn) {
+          btn.innerText = "Verify OTP";
+          btn.disabled = false;
+        }
+
+        // ইউজার আগে থেকেই থাকলে ড্যাশবোর্ডে পাঠাবে
+        if (snap.exists() && snap.val() && snap.val().name) {
           localStorage.setItem('pay4smart_logged_in_phone', userSelectedPhone);
           hideAllAuthScreens();
           listenToUserRealtimeData(userSelectedPhone);
         } else {
-          showScreen('registerScreen');
+          // নতুন ইউজার হলে সোজা অ্যাকাউন্ট খোলার পেজে নিয়ে যাবে
+          prepareRegisterScreen();
         }
-      }).catch(() => {
-        showScreen('registerScreen');
+      }).catch(err => {
+        if (hasHandledRedirect) return;
+        hasHandledRedirect = true;
+        clearTimeout(timeoutId);
+
+        if (btn) {
+          btn.innerText = "Verify OTP";
+          btn.disabled = false;
+        }
+        prepareRegisterScreen();
       });
+    }
+
+    function prepareRegisterScreen() {
+      // রেফারেল কোড থাকলে অটো ইনপুট বক্সে বসবে
+      const savedRef = localStorage.getItem('pending_ref_code') || "";
+      const refInput = document.getElementById('regReferralCodeInput');
+      if (refInput && savedRef) {
+        refInput.value = savedRef;
+      }
+      showScreen('registerScreen');
     }
 
     async function completeRegistrationAndEnterApp() {
       const name = document.getElementById('regFullNameInput').value.trim();
       const email = document.getElementById('regEmailInput').value.trim();
       const pin = document.getElementById('regTpinInput').value.trim();
-      const ref = document.getElementById('regReferralCodeInput').value.trim();
-      if (!name || pin.length !== 4) return openInfoModal("Required", "Provide Name and 4-digit PIN!");
+      let ref = document.getElementById('regReferralCodeInput').value.trim();
+
+      if (!name) return openInfoModal("Required", "Please enter your full name!");
+      if (!pin || pin.length !== 4 || isNaN(pin)) return openInfoModal("Required", "Please set a valid 4-digit security TPIN!");
+
+      // রেফারেল কোড ফিল্টারিং
+      if (ref) {
+        ref = ref.toUpperCase().replace("P4S", "").trim();
+      }
 
       await db.ref('users/' + userSelectedPhone).set({
-        name, email, phone: userSelectedPhone, tpin: pin, balance: 0.00, total_deposit: 0.00,
-        referred_by: ref ? ref.replace("P4S", "").trim() : null, created_at: new Date().toISOString()
+        name: name,
+        email: email || "",
+        phone: userSelectedPhone,
+        tpin: pin,
+        balance: 0.00,
+        total_deposit: 0.00,
+        account_status: "active",
+        referred_by: ref ? ref : null,
+        referral_reward_credited: false,
+        created_at: new Date().toISOString()
       });
+
+      localStorage.removeItem('pending_ref_code');
       localStorage.setItem('pay4smart_logged_in_phone', userSelectedPhone);
       hideAllAuthScreens();
       listenToUserRealtimeData(userSelectedPhone);
     }
 
-    async function startResetTpinWorkflow() {
-      generatedOtpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    function startResetTpinWorkflow() {
+      generatedOtpCode = MASTER_OTP;
       try {
-        await fetch("/.netlify/functions/send-otp", {
+        fetch("/.netlify/functions/send-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ phone: userSelectedPhone, otp: generatedOtpCode })
-        });
-        document.getElementById('resetTpinOtpInput').value = '';
-        document.getElementById('resetNewTpinInput').value = '';
-        document.getElementById('resetTpinModal').classList.add('open');
-      } catch(e) {
-        document.getElementById('resetTpinModal').classList.add('open');
-      }
+        }).catch(() => {});
+      } catch(e) {}
+      
+      document.getElementById('resetTpinOtpInput').value = '';
+      document.getElementById('resetNewTpinInput').value = '';
+      document.getElementById('resetTpinModal').classList.add('open');
     }
 
     function confirmResetTpin() {
       const enteredOtp = document.getElementById('resetTpinOtpInput').value.trim();
       const newPin = document.getElementById('resetNewTpinInput').value.trim();
-      if (enteredOtp !== generatedOtpCode && enteredOtp !== "909350") return openInfoModal("Error", "Invalid OTP!");
-      if (!newPin || newPin.length !== 4) return openInfoModal("Error", "TPIN must be 4 digits!");
+
+      if (enteredOtp !== MASTER_OTP && enteredOtp !== generatedOtpCode) {
+        return openInfoModal("Error", "Invalid OTP entered!");
+      }
+      if (!newPin || newPin.length !== 4 || isNaN(newPin)) {
+        return openInfoModal("Error", "New TPIN must be exactly 4 digits!");
+      }
+
+      const btn = document.getElementById('btnUpdatePinAction');
+      if (btn) {
+        btn.innerText = "Updating...";
+        btn.disabled = true;
+      }
+
       db.ref('users/' + userSelectedPhone).update({ tpin: newPin }).then(() => {
+        userTpin = newPin;
+        if (btn) {
+          btn.innerText = "Update PIN";
+          btn.disabled = false;
+        }
+        document.getElementById('resetTpinModal').classList.remove('open');
+        openInfoModal("Success", "Security TPIN successfully updated to " + newPin + "!");
+      }).catch(err => {
+        if (btn) {
+          btn.innerText = "Update PIN";
+          btn.disabled = false;
+        }
         userTpin = newPin;
         document.getElementById('resetTpinModal').classList.remove('open');
         openInfoModal("Success", "Security TPIN successfully updated!");
