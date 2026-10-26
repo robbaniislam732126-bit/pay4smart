@@ -17,6 +17,25 @@ function fetchFirebaseConfig() {
   });
 }
 
+// ফায়ারবেসে অর্ডার আইডি এবং ফোন নম্বর সেভ করার ফাংশন
+function savePendingOrder(orderId, orderData) {
+  return new Promise((resolve) => {
+    const dataStr = JSON.stringify(orderData);
+    const req = https.request(`https://pay4smart-default-rtdb.firebaseio.com/pending_orders/${orderId}.json`, {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(dataStr)
+      }
+    }, (res) => {
+      resolve();
+    });
+    req.on("error", () => resolve());
+    req.write(dataStr);
+    req.end();
+  });
+}
+
 exports.handler = async (event) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -64,6 +83,14 @@ exports.handler = async (event) => {
     const CALLBACK_URL = firebaseSettings.gateway_callback_url || "https://pay4smart.netlify.app/.netlify/functions/payment-callback";
 
     const orderId = "DEP" + Date.now();
+
+    // পেমেন্ট শুরুর আগেই ডাটাবেসে অর্ডার আইডির সাথে ফোন নম্বর জমা রাখা
+    await savePendingOrder(orderId, {
+      phone: phone,
+      amount: parseFloat(amount),
+      name: name || "User",
+      createdAt: Date.now()
+    });
 
     const params = new URLSearchParams({
       user_token: USER_TOKEN,
