@@ -6,7 +6,7 @@ function fetchFbData(path) {
       let data = "";
       res.on("data", chunk => data += chunk);
       res.on("end", () => {
-        try { resolve(JSON.parse(data) || {}); } catch(e) { resolve({}); }
+        try { resolve(JSON.parse(data) || null); } catch(e) { resolve(null); }
       });
     }).on("error", reject);
   });
@@ -14,42 +14,53 @@ function fetchFbData(path) {
 
 function putFbData(path, payload) {
   return new Promise((resolve, reject) => {
+    const dataStr = JSON.stringify(payload);
     const req = https.request(`https://pay4smart-default-rtdb.firebaseio.com/${path}.json`, { 
       method: "PUT",
-      headers: { "Content-Type": "application/json" }
+      headers: { 
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(dataStr)
+      }
     }, resolve);
     req.on("error", reject);
-    req.write(JSON.stringify(payload));
+    req.write(dataStr);
     req.end();
   });
 }
 
 function patchFbData(path, payload) {
   return new Promise((resolve, reject) => {
+    const dataStr = JSON.stringify(payload);
     const req = https.request(`https://pay4smart-default-rtdb.firebaseio.com/${path}.json`, { 
       method: "PATCH",
-      headers: { "Content-Type": "application/json" }
+      headers: { 
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(dataStr)
+      }
     }, resolve);
     req.on("error", reject);
-    req.write(JSON.stringify(payload));
+    req.write(dataStr);
     req.end();
   });
 }
 
 function pushFbHistory(path, historyItem) {
   return new Promise((resolve, reject) => {
+    const dataStr = JSON.stringify(historyItem);
     const req = https.request(`https://pay4smart-default-rtdb.firebaseio.com/${path}.json`, { 
       method: "POST",
-      headers: { "Content-Type": "application/json" }
+      headers: { 
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(dataStr)
+      }
     }, resolve);
     req.on("error", reject);
-    req.write(JSON.stringify(historyItem));
+    req.write(dataStr);
     req.end();
   });
 }
 
 exports.handler = async (event) => {
-  // গেটওয়ে থেকে কী ডাটা আসছে তা সরাসরি Netlify লগে প্রিন্ট করার জন্য
   console.log("CALLBACK EVENT BODY:", event.body);
   console.log("CALLBACK QUERY PARAMS:", event.queryStringParameters);
 
@@ -77,10 +88,24 @@ exports.handler = async (event) => {
     }
 
     const status = (payload.status || payload.STATUS || "").toString().toUpperCase();
-    const phone = payload.customer_mobile || payload.phone || payload.mobile;
-    const amount = parseFloat(payload.amount);
-    const txnId = payload.order_id || payload.utr || ("DEP" + Date.now());
+    const orderId = payload.order_id || payload.orderId;
+    let amount = parseFloat(payload.amount);
+    let phone = payload.customer_mobile || payload.phone || payload.mobile;
 
+    // গেটওয়ে ফোন নম্বর না পাঠালে অর্ডার আইডি দিয়ে ডাটাবেস থেকে ফোন খুঁজে আনা
+    if (!phone && orderId) {
+      const pendingInfo = await fetchFbData(`pending_orders/${orderId}`);
+      if (pendingInfo) {
+        phone = pendingInfo.phone;
+        if (!amount || isNaN(amount)) {
+          amount = parseFloat(pendingInfo.amount);
+        }
+      }
+    }
+
+    const txnId = orderId || payload.utr || ("DEP" + Date.now());
+
+    // পেমেন্ট সফল হলে এবং ফোন নম্বর পাওয়া গেলে ওয়ালেট আপডেট করা
     if ((status === "SUCCESS" || status === "COMPLETED" || payload.status === 1 || payload.status === "1") && phone && amount > 0) {
       
       const alreadyProcessed = await fetchFbData(`processed_orders/${txnId}`);
@@ -90,7 +115,7 @@ exports.handler = async (event) => {
 
       await putFbData(`processed_orders/${txnId}`, { completed: true, timestamp: Date.now() });
 
-      const userData = await fetchFbData(`users/${phone}`);
+      const userData = (await fetchFbData(`users/${phone}`)) || {};
       const oldBalance = parseFloat(userData.balance || 0);
       const oldTotalDeposit = parseFloat(userData.total_deposit || 0);
       
@@ -99,6 +124,7 @@ exports.handler = async (event) => {
 
       const timeStr = "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+      // ইউজার হিস্ট্রি যোগ করা
       await pushFbHistory(`users/${phone}/history`, {
         txnId: txnId,
         title: "Wallet Deposit",
@@ -110,6 +136,7 @@ exports.handler = async (event) => {
         time: timeStr
       });
 
+      // রেফারেল বোনাস লজিক
       if (amount >= 500 && userData.referred_by && !userData.referral_reward_credited) {
         const referrerPhone = userData.referred_by;
         const referrerData = await fetchFbData(`users/${referrerPhone}`);
@@ -144,17 +171,19 @@ exports.handler = async (event) => {
         }
       }
 
+      // ইউজারের নতুন ব্যালেন্স ডাটাবেসে আপডেট
       await patchFbData(`users/${phone}`, {
         balance: newBalance,
         total_deposit: newTotalDeposit,
         referral_reward_credited: (amount >= 500 && userData.referred_by) ? true : Boolean(userData.referral_reward_credited)
       });
 
-      return { statusCode: 200, body: JSON.stringify({ status: "success" }) };
+      return { statusCode: 200, body: JSON.stringify({ status: "success", message: "Wallet updated successfully" }) };
     }
 
     return { statusCode: 200, body: "Ignored or Pending" };
   } catch (err) {
+    console.error("Callback Processing Error:", err);
     return { statusCode: 500, body: err.message };
   }
 };
