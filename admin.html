@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pay4Smart - Master Control</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4338ca;
+      --bg: #0b0f19;
+      --card-bg: #151d30;
+      --card-border: #232f48;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --green: #10b981;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --blue: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .admin-wrapper {
+      width: 100%;
+      max-width: 540px;
+      min-height: 100vh;
+      background: var(--bg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 40px;
+      border-left: 1px solid var(--card-border);
+      border-right: 1px solid var(--card-border);
+    }
+
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 540px;
+      height: 100vh;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 24px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    .auth-overlay.hidden { display: none; }
+
+    .auth-brand {
+      text-align: center;
+      margin-top: 24px;
+      margin-bottom: 22px;
+    }
+
+    .auth-brand h1 { font-size: 2.1rem; font-weight: 900; color: #fff; }
+    .auth-brand h1 span { color: var(--primary); }
+    .auth-brand p { color: var(--text-muted); font-size: 0.92rem; margin-top: 5px; }
+
+    .form-group { margin-bottom: 13px; position: relative; }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .form-input-wrap {
+      display: flex;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      gap: 12px;
+    }
+
+    .form-input-wrap i { color: var(--primary); font-size: 1.05rem; }
+    .form-input-wrap input, .form-input-wrap select, .form-input-wrap textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    .btn-action {
+      width: 100%;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+    .btn-action:active { transform: scale(0.98); }
+
+    .top-header {
+      background: var(--card-bg);
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-header h2 { font-size: 1.25rem; font-weight: 800; }
+    .header-right { display: flex; align-items: center; gap: 10px; position: relative; }
+
+    .admin-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green);
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .three-dots-btn {
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .dropdown-menu-3dots {
+      position: absolute;
+      top: 45px;
+      right: 0;
+      background: #1e293b;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      width: 220px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 200;
+    }
+    .dropdown-menu-3dots.show { display: flex; }
+
+    .menu-item-3dots {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #f8fafc;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      text-align: left;
+    }
+    .menu-item-3dots:hover { background: rgba(99, 102, 241, 0.15); }
+    .menu-item-3dots.logout-item { color: var(--red); }
+
+    .admin-tabs {
+      display: flex;
+      background: #0f172a;
+      border-bottom: 1px solid var(--card-border);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .admin-tabs::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      padding: 13px 16px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab-btn.active {
+      color: #fff;
+      border-bottom: 3px solid var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    .tab-content { display: none; padding: 18px 16px; }
+    .tab-content.active { display: block; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+
+    .grid-2-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .margin-subheading {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 16px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border-bottom: 1px dashed var(--card-border);
+      padding-bottom: 6px;
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .analytic-box {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .analytic-icon-wrap {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .analytic-texts p { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+    .analytic-texts h3 { font-size: 1.15rem; font-weight: 800; color: #fff; margin-top: 2px; }
+
+    .user-card {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .user-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .user-name { 
+      font-weight: 800; 
+      font-size: 1rem; 
+      color: #fff; 
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .user-name:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+    .user-phone { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+    .badge-status {
+      font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase;
+    }
+    .status-active { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+    .status-blocked { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+
+    .user-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      background: #151d30;
+      padding: 8px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .user-stat-item p { font-size: 0.68rem; color: var(--text-muted); }
+    .user-stat-item h5 { font-size: 0.85rem; font-weight: 700; color: #fff; margin-top: 2px; }
+
+    .user-actions { display: flex; gap: 8px; }
+    .btn-toggle-status, .btn-tpin-user, .btn-del-user {
+      flex: 1; border: none; padding: 8px; border-radius: 8px; font-weight: 700; font-size: 0.78rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .btn-block { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+    .btn-unblock { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+    .btn-tpin-user { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+    .btn-del-user { background: rgba(239, 68, 68, 0.15); color: #fca5a5; max-width: 80px; }
+
+    .plan-item {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .plan-item-left h4 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--green);
+      margin-bottom: 4px;
+    }
+    .plan-item-left p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+    .btn-del-plan {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--red);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-left: 10px;
+    }
+
+    .req-card {
+      background: #0f172a; border: 1px solid var(--card-border); border-radius: 14px; padding: 14px; margin-bottom: 12px;
+    }
+    .req-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .req-user { font-weight: 800; font-size: 0.95rem; color: #fff; }
+    .req-utr { font-size: 0.85rem; color: var(--amber); margin: 8px 0; font-family: monospace; }
+    .req-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .btn-approve, .btn-reject {
+      flex: 1; border: none; padding: 9px; border-radius: 8px; font-weight: 700; cursor: pointer;
+    }
+    .btn-approve { background: var(--green); color: #fff; }
+    .btn-reject { background: var(--red); color: #fff; }
+
+    /* TOGGLE SWITCHES (SERVICE AVAILABILITY CONTROLLER) */
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .switch-row span {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .switch-box {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+    }
+    .switch-box input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider-round {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334155;
+      transition: .3s;
+      border-radius: 34px;
+    }
+    .slider-round:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider-round {
+      background-color: #6366f1;
+    }
+    input:checked + .slider-round:before {
+      transform: translateX(22px);
+    }
+
+    .modal-3d-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: all 0.25s ease;
+    }
+    .modal-3d-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-3d-card {
+      width: 100%; max-width: 380px;
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 26px 20px;
+      text-align: center;
+      color: #fff;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-3d-icon {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #4338ca);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; margin: 0 auto 14px;
+      flex-shrink: 0;
+    }
+    .modal-3d-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 6px; }
+    .modal-3d-desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
+    .modal-3d-input {
+      width: 100%; background: #0b0f19; border: 1.5px solid var(--primary);
+      border-radius: 12px; padding: 10px 14px; color: #fff; font-size: 0.95rem;
+      outline: none; margin-bottom: 14px;
+    }
+    .modal-3d-actions { display: flex; gap: 10px; margin-top: auto; }
+    .btn-3d-cancel {
+      flex: 1; background: #334155; color: #fff; border: none; padding: 11px; border-radius: 10px; font-weight: 700; cursor: pointer;
+    }
+    .btn-3d-confirm {
+      flex: 1; background: var(--primary); color: #fff; border: none; padding: 11px; border-radius: 10px; font-weight: 700; cursor: pointer;
+    }
+
+    .txn-list-scroll {
+      flex: 1;
+      overflow-y: auto;
+      text-align: left;
+      padding-right: 4px;
+      margin: 10px 0 16px;
+      max-height: 380px;
+    }
+    .txn-list-scroll::-webkit-scrollbar { width: 4px; }
+    .txn-list-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+    .txn-item-card {
+      background: #0b0f19;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .txn-item-info h5 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .txn-item-info p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .txn-item-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .txn-item-amount {
+      font-weight: 800;
+      font-size: 0.92rem;
+    }
+    .txn-credit { color: var(--green); }
+    .txn-debit { color: var(--red); }
+    .btn-del-txn {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--red);
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+  <div class="admin-wrapper">
+
+    <!-- 1. ADMIN LOGIN SCREEN -->
+    <div class="auth-overlay" id="adminLoginScreen">
+      <div class="auth-brand">
+        <h1>Pay4<span>Smart</span></h1>
+        <p>Admin Master Login Portal</p>
+      </div>
+      <div class="form-group">
+        <label>Admin Mobile Number</label>
+        <div class="form-input-wrap">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <input type="tel" id="loginAdminPhone" placeholder="Enter phone" maxlength="10" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="form-input-wrap">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="loginAdminPass" placeholder="Enter password" />
+        </div>
+      </div>
+      <button class="btn-action" id="btnLoginAction" onclick="handleAdminLogin()">
+        <i class="fa-solid fa-right-to-bracket"></i> Login to Console
+      </button>
+    </div>
+
+    <!-- HEADER -->
+    <header class="top-header">
+      <div>
+        <h2>Master Control</h2>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;" id="currentAdminName">Loading...</div>
+      </div>
+      <div class="header-right">
+        <div class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Active</div>
+        <button class="three-dots-btn" onclick="toggleThreeDotsMenu(event)"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+
+        <!-- ৪টি সম্পূর্ণ ড্রপডাউন অপশন -->
+        <div class="dropdown-menu-3dots" id="threeDotsDropdown">
+          <button class="menu-item-3dots" onclick="openAdminInfoModal()"><i class="fa-solid fa-circle-user"></i> Admin Profile</button>
+          <button class="menu-item-3dots" onclick="openChangePasswordModal()"><i class="fa-solid fa-key"></i> Change Password</button>
+          <button class="menu-item-3dots" onclick="openFirebaseConfigModal()"><i class="fa-solid fa-fire"></i> Change Firebase & Migrate</button>
+          <button class="menu-item-3dots logout-item" onclick="trigger3DLogout()"><i class="fa-solid fa-power-off"></i> Log Out</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- TABS -->
+    <nav class="admin-tabs">
+      <button class="tab-btn active" onclick="switchTab(this, 'tabReports')"><i class="fa-solid fa-chart-pie"></i> Reports</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tabRequests')"><i class="fa-solid fa-hand-holding-dollar"></i> Requests</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tabUsers')"><i class="fa-solid fa-users"></i> Users</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tabPlans')"><i class="fa-solid fa-tags"></i> Plans</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tabMargins')"><i class="fa-solid fa-percent"></i> Margins</button>
+      <button class="tab-btn" onclick="switchTab(this, 'tabSettings')"><i class="fa-solid fa-gear"></i> Settings</button>
+    </nav>
+
+    <!-- TAB 1: REPORTS -->
+    <div class="tab-content active" id="tabReports">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-chart-line" style="color:var(--primary);"></i> Platform Analytics & Report</div>
+        <div class="analytics-grid">
+          <div class="analytic-box">
+            <div class="analytic-icon-wrap" style="background:rgba(99,102,241,0.15); color:var(--primary);"><i class="fa-solid fa-users"></i></div>
+            <div class="analytic-texts"><p>Total Users</p><h3 id="repTotalUsers">0</h3></div>
+          </div>
+          <div class="analytic-box">
+            <div class="analytic-icon-wrap" style="background:rgba(16,185,129,0.15); color:var(--green);"><i class="fa-solid fa-wallet"></i></div>
+            <div class="analytic-texts"><p>Total Balance</p><h3 id="repTotalBalance">₹ 0.00</h3></div>
+          </div>
+          <div class="analytic-box">
+            <div class="analytic-icon-wrap" style="background:rgba(59,130,246,0.15); color:var(--blue);"><i class="fa-solid fa-bolt"></i></div>
+            <div class="analytic-texts"><p>Total Sales</p><h3 id="repTotalSale">₹ 0</h3></div>
+          </div>
+          <div class="analytic-box">
+            <div class="analytic-icon-wrap" style="background:rgba(245,158,11,0.15); color:var(--amber);"><i class="fa-solid fa-coins"></i></div>
+            <div class="analytic-texts"><p>Commission Paid</p><h3 id="repTotalProfit">₹ 0</h3></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: REQUESTS -->
+    <div class="tab-content" id="tabRequests">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-bell" style="color:var(--amber);"></i> Pending Deposit Requests (<span id="reqCount">0</span>)</div>
+        <div id="addMoneyReqContainer"><p style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding:15px;">No pending deposit requests.</p></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: USERS -->
+    <div class="tab-content" id="tabUsers">
+      <!-- DATE RANGE BULK TRANSACTION DELETE -->
+      <div class="card" style="border: 1px dashed rgba(239, 68, 68, 0.4);">
+        <div class="card-title" style="color: var(--red);"><i class="fa-solid fa-calendar-xmark"></i> Delete Transactions By Date Range</div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.35;">
+          সিলেক্ট করা নির্দিষ্ট তারিখের (যেমন ১০ তারিখ থেকে ৩০ তারিখ) মধ্যকার সকল ইউজারের ট্রানজেকশন হিস্ট্রি ফায়ারবেস থেকে স্থায়ীভাবে মুছে ফেলুন।
+        </p>
+        <div class="grid-2-col">
+          <div class="form-group"><label>From Date (শুরু)</label><div class="form-input-wrap"><input type="date" id="bulkDateFrom" /></div></div>
+          <div class="form-group"><label>To Date (শেষ)</label><div class="form-input-wrap"><input type="date" id="bulkDateTo" /></div></div>
+        </div>
+        <button class="btn-action" style="background:rgba(239,68,68,0.2); color:var(--red); border:1px solid rgba(239,68,68,0.4);" onclick="handleBulkDeleteByDateRange()">
+          <i class="fa-solid fa-trash-can"></i> Delete All Customers History in Range
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-user-group" style="color:var(--primary);"></i> User Management (<span id="userCount">0</span>)</div>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
+          💡 ইউজারের সম্পূর্ণ ট্রানজেকশন হিস্ট্রি দেখতে এবং ট্রানজেকশন ডিলিট করতে ইউজারের <strong>নামের উপর ক্লিক করুন</strong>।
+        </p>
+        <div class="form-group">
+          <div class="form-input-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="userSearchInput" placeholder="Search by name or mobile number..." oninput="filterUserList(this.value)" />
+          </div>
+        </div>
+        <div id="usersListContainer"><p style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding:15px;">Loading users...</p></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: PLANS -->
+    <div class="tab-content" id="tabPlans">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-plus-circle" style="color:var(--green);"></i> Create Operator Plan</div>
+        <div class="grid-2-col">
+          <div class="form-group">
+            <label>Operator</label>
+            <div class="form-input-wrap">
+              <select id="newPlanOperator" onchange="updateCategoryDropdown(this.value)">
+                <option value="Jio">Jio</option>
+                <option value="Airtel">Airtel</option>
+                <option value="VI">VI</option>
+                <option value="BSNL">BSNL</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Plan Category</label>
+            <div class="form-input-wrap">
+              <select id="newPlanCategory"></select>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>Price (₹)</label><div class="form-input-wrap"><input type="number" id="newPlanPrice" placeholder="e.g. 299" /></div></div>
+          <div class="form-group"><label>Validity</label><div class="form-input-wrap"><input type="text" id="newPlanValidity" placeholder="e.g. 28 days" /></div></div>
+        </div>
+        <div class="form-group"><label>Data Benefit</label><div class="form-input-wrap"><input type="text" id="newPlanData" placeholder="e.g. 1.5 GB/day" /></div></div>
+        <div class="form-group"><label>Description</label><div class="form-input-wrap"><input type="text" id="newPlanDesc" placeholder="e.g. Truly Unlimited Calls" /></div></div>
+        <button class="btn-action" onclick="requestAdminAuth('create_plan')"><i class="fa-solid fa-cloud-arrow-up"></i> Publish Plan</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-list-check" style="color:var(--primary);"></i> Active Plans List</div>
+        <div id="activePlansContainer"><p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">No active custom plans.</p></div>
+      </div>
+    </div>
+
+    <!-- TAB 5: MARGINS -->
+    <div class="tab-content" id="tabMargins">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-percent" style="color:var(--amber);"></i> Setup Margins (%) & Commission</div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-id-card"></i> PAN Card Service Margin</div>
+        <div class="form-group">
+          <label>PAN Card Cashback to User (₹ Flat)</label>
+          <div class="form-input-wrap"><input type="number" step="0.5" id="marginPanCard" value="5.0" /></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-mobile-screen"></i> Mobile Recharge Margins</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>Airtel 349+ (%) [Val: 2.5]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginAirtel" value="2.5" /></div></div>
+          <div class="form-group"><label>Airte 10 - 299 (%) [Val: 0.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginAirtelSmall" value="0.0" /></div></div>
+          <div class="form-group"><label>BSNL Special (%) [Val: 5.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginBsnlCombo" value="5.0" /></div></div>
+          <div class="form-group"><label>BSNL Talktime (%) [Val: 5.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginBsnlTopup" value="5.0" /></div></div>
+          <div class="form-group"><label>Jio (%) [Val: 1.4]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginJio" value="1.4" /></div></div>
+          <div class="form-group"><label>Jio Emergency 19-249 (%) [Val: 0.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginJioEmergency" value="0.0" /></div></div>
+          <div class="form-group"><label>VI (%) [Val: 3.8]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginVi" value="3.8" /></div></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-satellite-dish"></i> DTH Recharge Margins</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>Airtel Digital TV (%) [Val: 4.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginAirtelDth" value="4.0" /></div></div>
+          <div class="form-group"><label>Dish TV (%) [Val: 4.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginDishTv" value="4.0" /></div></div>
+          <div class="form-group"><label>Sun Direct (%) [Val: 4.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginSunDirect" value="4.0" /></div></div>
+          <div class="form-group"><label>Tata Sky (%) [Val: 4.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginTataPlay" value="4.0" /></div></div>
+          <div class="form-group"><label>Videocon D2H (%) [Val: 4.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginD2h" value="4.0" /></div></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-mobile"></i> Postpaid Bill Margins (Flat ₹ / %)</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>Airtel Postpaid [Val: 0.3]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginAirtelPostpaid" value="0.3" /></div></div>
+          <div class="form-group"><label>BSNL Special [Val: 0.3]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginBsnlSpecialPostpaid" value="0.3" /></div></div>
+          <div class="form-group"><label>BSNL Topup [Val: 0.3]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginBsnlTopupPostpaid" value="0.3" /></div></div>
+          <div class="form-group"><label>Reliance Jio [Val: 0.3]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginJioPostpaid" value="0.3" /></div></div>
+          <div class="form-group"><label>VI Postpaid (%) [Val: 4.2]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginViPostpaid" value="4.2" /></div></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-brands fa-google-play"></i> Google Play Voucher</div>
+        <div class="form-group"><label>Google Play Code (%) [Val: 1.6]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginGooglePlay" value="1.6" /></div></div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-lightbulb"></i> Electricity Bill Margins (Flat ₹ / %)</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>South Bihar Power [Val: 1.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginSouthBihar" value="1.0" /></div></div>
+          <div class="form-group"><label>North Bihar Power [Val: 1.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginNorthBihar" value="1.0" /></div></div>
+          <div class="form-group"><label>Tripura State Elec [Val: 1.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginTripuraElec" value="1.0" /></div></div>
+          <div class="form-group"><label>Assam Power [Val: 1.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginAssamPower" value="1.0" /></div></div>
+          <div class="form-group"><label>WBSEDCL (West Bengal) [Val: 1.0]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginWbsedcl" value="1.0" /></div></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-car-side"></i> FASTag Recharge Margins (%)</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>ICICI Bank FASTag [Val: 0.2]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginIciciFastag" value="0.2" /></div></div>
+          <div class="form-group"><label>Airtel FASTag [Val: 0.2]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginAirtelFastag" value="0.2" /></div></div>
+          <div class="form-group"><label>Paytm Bank FASTag [Val: 0.2]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginPaytmFastag" value="0.2" /></div></div>
+          <div class="form-group"><label>IDFC First Bank [Val: 0.2]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginIdfcFastag" value="0.2" /></div></div>
+          <div class="form-group"><label>Axis Bank FASTag [Val: 0.2]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginAxisFastag" value="0.2" /></div></div>
+          <div class="form-group"><label>Bank of Baroda [Val: 0.5]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginBobFastag" value="0.5" /></div></div>
+          <div class="form-group"><label>HDFC Bank FASTag [Val: 0.5]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginHdfcFastag" value="0.5" /></div></div>
+          <div class="form-group"><label>Indian Highways (IHMCL) [Val: 0.5]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginIhmclFastag" value="0.5" /></div></div>
+          <div class="form-group"><label>IndusInd Bank FASTag [Val: 0.5]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginIndusindFastag" value="0.5" /></div></div>
+          <div class="form-group"><label>SBI FASTAG [Val: 0.5]</label><div class="form-input-wrap"><input type="number" step="0.1" id="marginSbiFastag" value="0.5" /></div></div>
+        </div>
+
+        <button class="btn-action" onclick="requestAdminAuth('save_margins')"><i class="fa-solid fa-floppy-disk"></i> Save Margin Rates</button>
+      </div>
+    </div>
+
+    <!-- TAB 6: SETTINGS -->
+    <div class="tab-content" id="tabSettings">
+
+      <!-- SERVICE AVAILABILITY CONTROLLER -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-sliders" style="color:var(--primary);"></i> Service Availability Controller</div>
+        
+        <div class="switch-row"><span>Mobile Recharge</span><label class="switch-box"><input type="checkbox" id="srv_mobile" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>DTH/TV Recharge</span><label class="switch-box"><input type="checkbox" id="srv_dth" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>FASTag Recharge</span><label class="switch-box"><input type="checkbox" id="srv_fastag" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>Google Play Voucher</span><label class="switch-box"><input type="checkbox" id="srv_google_play" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>Postpaid</span><label class="switch-box"><input type="checkbox" id="srv_postpaid" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>Electricity</span><label class="switch-box"><input type="checkbox" id="srv_electricity" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>EMI</span><label class="switch-box"><input type="checkbox" id="srv_emi" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>Insurance</span><label class="switch-box"><input type="checkbox" id="srv_insurance" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>Broadband</span><label class="switch-box"><input type="checkbox" id="srv_broadband" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>LPG Gas</span><label class="switch-box"><input type="checkbox" id="srv_lpg" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>Water</span><label class="switch-box"><input type="checkbox" id="srv_water" checked><span class="slider-round"></span></label></div>
+        <div class="switch-row"><span>PAN Card Service</span><label class="switch-box"><input type="checkbox" id="srv_pan" checked><span class="slider-round"></span></label></div>
+
+        <button class="btn-action" onclick="requestAdminAuth('save_service_switches')"><i class="fa-solid fa-floppy-disk"></i> Update Services Availability</button>
+      </div>
+
+      <!-- PAN CARD API CONFIGURATION -->
+      <div class="card" style="border: 1px solid var(--primary);">
+        <div class="card-title" style="color: #a5b4fc;"><i class="fa-solid fa-id-card"></i> PAN Card API Configuration</div>
+        <div class="form-group">
+          <label>PAN Card Provider API URL</label>
+          <div class="form-input-wrap">
+            <i class="fa-solid fa-globe"></i>
+            <input type="text" id="adminPanApiUrl" placeholder="https://api.provider.com/pan/create" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>PAN API User Token / Secret Key</label>
+          <div class="form-input-wrap">
+            <i class="fa-solid fa-key"></i>
+            <input type="text" id="adminPanApiToken" placeholder="Enter PAN API Token" />
+          </div>
+        </div>
+        <div class="grid-2-col">
+          <div class="form-group">
+            <label>Government Application Fee (₹)</label>
+            <div class="form-input-wrap"><input type="number" id="adminPanFee" value="107" /></div>
+          </div>
+          <div class="form-group">
+            <label>PAN Operator Code</label>
+            <div class="form-input-wrap"><input type="text" id="adminPanOpCode" value="PAN01" /></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Resume Application Direct URL (Portal)</label>
+          <div class="form-input-wrap">
+            <i class="fa-solid fa-arrow-turn-down"></i>
+            <input type="text" id="adminPanResumeUrl" placeholder="https://www.pan.utiitsl.com/PAN_ONLINE/ePANCard" />
+          </div>
+        </div>
+        <button class="btn-action" onclick="requestAdminAuth('save_pan_api')"><i class="fa-solid fa-floppy-disk"></i> Save PAN API & Operator Settings</button>
+      </div>
+
+      <!-- HOSTING & DOMAIN SETTING -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-server" style="color:var(--primary);"></i> App Host / Base Domain URL</div>
+        <div class="form-group">
+          <label>Website Base URL (where this app is hosted)</label>
+          <div class="form-input-wrap">
+            <i class="fa-solid fa-link"></i>
+            <input type="text" id="adminAppHostUrl" value="https://pay4smart-2.onrender.com" />
+          </div>
+        </div>
+        <button class="btn-action" onclick="requestAdminAuth('save_host_url')"><i class="fa-solid fa-floppy-disk"></i> Update Base Domain URL</button>
+      </div>
+
+      <!-- RECHARGE API CONFIGURATION & 33 OPERATOR CODES -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-bolt" style="color:var(--primary);"></i> Dynamic Recharge API Configuration</div>
+        <div class="form-group">
+          <label>Recharge API Token</label>
+          <div class="form-input-wrap"><input type="text" id="adminRechargeApiToken" value="DQQVHAWL3H1S8GMB2sYatbtB4hpvjD7p" /></div>
+        </div>
+        <div class="form-group">
+          <label>Recharge Webhook / Callback URL</label>
+          <div class="form-input-wrap"><input type="text" id="adminRechargeCallbackUrl" value="https://pay4smart-2.onrender.com/payment-callback" /></div>
+        </div>
+        <div class="form-group">
+          <label>Recharge API URL & Parameter Template</label>
+          <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:5px;">
+            Tags: <code>{TOKEN}</code>, <code>{PROVIDER_ID}</code>, <code>{NUMBER}</code>, <code>{AMOUNT}</code>, <code>{ORDER_ID}</code>, <code>{CALLBACK_URL}</code>
+          </p>
+          <div class="form-input-wrap">
+            <textarea id="adminRechargeApiUrl" rows="3" style="font-family:monospace; font-size:0.8rem; padding:4px 0;">https://payicon.in/api/api_service/recharges?token={TOKEN}&provider_id={PROVIDER_ID}&number={NUMBER}&amount={AMOUNT}&api_order_id={ORDER_ID}&callback_url={CALLBACK_URL}</textarea>
+          </div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-tower-cell"></i> Mobile Provider Operator Codes</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>Airtel 349+ [Code: 5]</label><div class="form-input-wrap"><input type="number" id="pcode_airtel" value="5" /></div></div>
+          <div class="form-group"><label>Airte 10 - 299 [Code: 39]</label><div class="form-input-wrap"><input type="number" id="pcode_airtel_small" value="39" /></div></div>
+          <div class="form-group"><label>BSNL Special [Code: 6]</label><div class="form-input-wrap"><input type="number" id="pcode_bsnl_special" value="6" /></div></div>
+          <div class="form-group"><label>BSNL Talktime [Code: 7]</label><div class="form-input-wrap"><input type="number" id="pcode_bsnl_topup" value="7" /></div></div>
+          <div class="form-group"><label>Jio [Code: 8]</label><div class="form-input-wrap"><input type="number" id="pcode_jio" value="8" /></div></div>
+          <div class="form-group"><label>Jio Emergency 19-249 [Code: 9]</label><div class="form-input-wrap"><input type="number" id="pcode_jio_emergency" value="9" /></div></div>
+          <div class="form-group"><label>VI [Code: 10]</label><div class="form-input-wrap"><input type="number" id="pcode_vi" value="10" /></div></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-satellite-dish"></i> DTH Provider Operator Codes</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>Airtel Digital TV [Code: 11]</label><div class="form-input-wrap"><input type="number" id="pcode_airtel_dth" value="11" /></div></div>
+          <div class="form-group"><label>Dish TV [Code: 12]</label><div class="form-input-wrap"><input type="number" id="pcode_dishtv" value="12" /></div></div>
+          <div class="form-group"><label>Sun Direct [Code: 13]</label><div class="form-input-wrap"><input type="number" id="pcode_sundirect" value="13" /></div></div>
+          <div class="form-group"><label>Tata Sky [Code: 14]</label><div class="form-input-wrap"><input type="number" id="pcode_tataplay" value="14" /></div></div>
+          <div class="form-group"><label>Videocon D2H [Code: 15]</label><div class="form-input-wrap"><input type="number" id="pcode_d2h" value="15" /></div></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-mobile"></i> Postpaid Provider Codes</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>Airtel Postpaid [Code: 16]</label><div class="form-input-wrap"><input type="number" id="pcode_postpaid_airtel" value="16" /></div></div>
+          <div class="form-group"><label>BSNL Special Postpaid [Code: 17]</label><div class="form-input-wrap"><input type="number" id="pcode_postpaid_bsnl_special" value="17" /></div></div>
+          <div class="form-group"><label>BSNL Topup Postpaid [Code: 18]</label><div class="form-input-wrap"><input type="number" id="pcode_postpaid_bsnl_topup" value="18" /></div></div>
+          <div class="form-group"><label>Reliance Jio Postpaid [Code: 19]</label><div class="form-input-wrap"><input type="number" id="pcode_postpaid" value="19" /></div></div>
+          <div class="form-group"><label>VI Postpaid [Code: 21]</label><div class="form-input-wrap"><input type="number" id="pcode_postpaid_vi" value="21" /></div></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-brands fa-google-play"></i> Google Play Provider Code</div>
+        <div class="form-group"><label>Google Play Code [Code: 23]</label><div class="form-input-wrap"><input type="number" id="pcode_google_play" value="23" /></div></div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-lightbulb"></i> Electricity Provider Codes</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>South Bihar Power [Code: 24]</label><div class="form-input-wrap"><input type="number" id="pcode_elec_south_bihar" value="24" /></div></div>
+          <div class="form-group"><label>North Bihar Power [Code: 25]</label><div class="form-input-wrap"><input type="number" id="pcode_elec_north_bihar" value="25" /></div></div>
+          <div class="form-group"><label>Tripura State Elec [Code: 26]</label><div class="form-input-wrap"><input type="number" id="pcode_elec_tripura" value="26" /></div></div>
+          <div class="form-group"><label>Assam Power [Code: 27]</label><div class="form-input-wrap"><input type="number" id="pcode_elec_assam" value="27" /></div></div>
+          <div class="form-group"><label>WBSEDCL (West Bengal) [Code: 28]</label><div class="form-input-wrap"><input type="number" id="pcode_electricity" value="28" /></div></div>
+        </div>
+
+        <div class="margin-subheading"><i class="fa-solid fa-car-side"></i> FASTag Provider Codes</div>
+        <div class="grid-2-col">
+          <div class="form-group"><label>ICICI Bank FASTag [Code: 29]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_icici" value="29" /></div></div>
+          <div class="form-group"><label>Airtel FASTag [Code: 30]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_airtel" value="30" /></div></div>
+          <div class="form-group"><label>Paytm Bank FASTag [Code: 31]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_paytm" value="31" /></div></div>
+          <div class="form-group"><label>IDFC First Bank [Code: 32]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_idfc" value="32" /></div></div>
+          <div class="form-group"><label>Axis Bank FASTag [Code: 33]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_axis" value="33" /></div></div>
+          <div class="form-group"><label>Bank of Baroda [Code: 34]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_bob" value="34" /></div></div>
+          <div class="form-group"><label>HDFC Bank FASTag [Code: 35]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_hdfc" value="35" /></div></div>
+          <div class="form-group"><label>Indian Highways (IHMCL) [Code: 36]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_ihmcl" value="36" /></div></div>
+          <div class="form-group"><label>IndusInd Bank FASTag [Code: 37]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_indusind" value="37" /></div></div>
+          <div class="form-group"><label>SBI FASTAG [Code: 38]</label><div class="form-input-wrap"><input type="number" id="pcode_fastag_sbi" value="38" /></div></div>
+        </div>
+
+        <button class="btn-action" onclick="requestAdminAuth('save_recharge_api')"><i class="fa-solid fa-floppy-disk"></i> Save Recharge API & Codes</button>
+      </div>
+
+      <!-- SMS OTP GATEWAY CONFIG -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-comment-sms" style="color:var(--green);"></i> Dynamic SMS (OTP) Gateway Configuration</div>
+        <div class="form-group">
+          <label>SMS API Token / Key</label>
+          <div class="form-input-wrap"><input type="text" id="adminSmsApiToken" value="d7fd7e561f3eb9cf534fb16a3052f970" /></div>
+        </div>
+        <div class="form-group">
+          <label>SMS Gateway URL Template</label>
+          <div class="form-input-wrap">
+            <textarea id="adminSmsApiUrl" rows="2" style="font-family:monospace; font-size:0.8rem; padding:4px 0;">https://sms.renflair.in/V1.php?API={TOKEN}&PHONE={PHONE}&OTP={OTP}</textarea>
+          </div>
+        </div>
+        <button class="btn-action" onclick="requestAdminAuth('save_sms_api')"><i class="fa-solid fa-floppy-disk"></i> Save SMS Gateway Settings</button>
+      </div>
+
+      <!-- PAYMENT GATEWAY CONFIG -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-credit-card" style="color:var(--blue);"></i> Payment Gateway Configuration</div>
+        <div class="form-group">
+          <label>Gateway API URL</label>
+          <div class="form-input-wrap"><input type="text" id="adminGatewayApiUrl" value="https://pay.dghost.in/api/create-order" /></div>
+        </div>
+        <div class="form-group">
+          <label>Gateway User Token</label>
+          <div class="form-input-wrap"><input type="text" id="adminDghostUserToken" value="bf16ca864f7a41e0e9fa5b11ba080f48" /></div>
+        </div>
+        <button class="btn-action" onclick="requestAdminAuth('save_dghost_gateway')"><i class="fa-solid fa-floppy-disk"></i> Save Gateway Settings</button>
+      </div>
+
+      <!-- WHATSAPP SUPPORT -->
+      <div class="card">
+        <div class="card-title"><i class="fa-brands fa-whatsapp" style="color:#25d366;"></i> WhatsApp Support Configuration</div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <div class="form-input-wrap"><input type="tel" id="adminWhatsappNumber" value="917994946784" /></div>
+        </div>
+        <button class="btn-action" onclick="requestAdminAuth('save_support')"><i class="fa-solid fa-check"></i> Update Support Number</button>
+      </div>
+
+      <!-- UPI ID -->
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-qrcode" style="color:var(--amber);"></i> App UPI ID Configuration</div>
+        <div class="form-group">
+          <label>Receiver UPI ID</label>
+          <div class="form-input-wrap"><input type="text" id="adminUpiIdInput" value="7994946784@pthdfc" /></div>
+        </div>
+        <button class="btn-action" onclick="requestAdminAuth('save_upi')"><i class="fa-solid fa-floppy-disk"></i> Update UPI ID</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ALL MODALS -->
+
+  <!-- 1. USER TRANSACTIONS LIST & INDIVIDUAL DELETE MODAL -->
+  <div class="modal-3d-overlay" id="userTxnModal">
+    <div class="modal-3d-card" style="max-width: 440px;">
+      <div class="modal-3d-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <h3 class="modal-3d-title" id="txnModalTitle">Transactions</h3>
+      <p class="modal-3d-desc" id="txnModalDesc">User transaction logs from Firebase</p>
+      
+      <div class="txn-list-scroll" id="userTxnListContainer"></div>
+
+      <div class="modal-3d-actions">
+        <button class="btn-3d-cancel" style="width: 100%;" onclick="closeUserTxnModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. FIREBASE DB URL CHANGE & AUTOMATIC MIGRATION MODAL -->
+  <div class="modal-3d-overlay" id="firebaseConfigModal">
+    <div class="modal-3d-card" style="max-width: 420px;">
+      <div class="modal-3d-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);"><i class="fa-solid fa-fire-burner"></i></div>
+      <h3 class="modal-3d-title">Change Firebase Database</h3>
+      <p class="modal-3d-desc">নতুন ফায়ারবেস ডেটাবেস URL দিন। সাবমিট করলে বর্তমান সমস্ত ইউজার ও ডেটা স্বয়ংক্রিয়ভাবে নতুন ফায়ারবেসে ট্রান্সফার হয়ে যাবে।</p>
+      
+      <div class="form-group" style="text-align: left;">
+        <label>New Firebase Realtime DB URL</label>
+        <input type="text" id="newFirebaseDbUrlInput" class="modal-3d-input" placeholder="https://your-new-db-default-rtdb.firebaseio.com/" />
+      </div>
+
+      <div class="modal-3d-actions">
+        <button class="btn-3d-cancel" onclick="closeFirebaseConfigModal()">Cancel</button>
+        <button class="btn-3d-confirm" style="background: var(--amber);" onclick="submitFirebaseMigration()">Migrate & Switch</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. TPIN RESET MODAL -->
+  <div class="modal-3d-overlay" id="userTpinModal">
+    <div class="modal-3d-card">
+      <div class="modal-3d-icon" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fa-solid fa-key"></i></div>
+      <h3 class="modal-3d-title">Reset User TPIN</h3>
+      <p class="modal-3d-desc" id="tpinModalUserDesc">Enter a new 4-digit security TPIN for this user.</p>
+      <input type="text" id="targetUserNewTpinInput" class="modal-3d-input" placeholder="4-Digit TPIN" maxlength="4" />
+      <div class="modal-3d-actions">
+        <button class="btn-3d-cancel" onclick="closeUserTpinModal()">Cancel</button>
+        <button class="btn-3d-confirm" onclick="submitUserTpinReset()">Update TPIN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. SECURITY CHECK MODAL -->
+  <div class="modal-3d-overlay" id="password3dModal">
+    <div class="modal-3d-card">
+      <h3 style="font-size:1.15rem; font-weight:800; margin-bottom:10px;">Security Check</h3>
+      <input type="password" id="adminSecurityPasswordInput" class="form-input-wrap" style="width:100%; margin-bottom:12px;" placeholder="Admin Password" />
+      <div style="display:flex; gap:10px;">
+        <button class="btn-action" style="background:#334155;" onclick="closePassword3dModal()">Cancel</button>
+        <button class="btn-action" onclick="verifyPasswordAndExecute()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. ADMIN INFO MODAL -->
+  <div class="modal-3d-overlay" id="adminInfoModal">
+    <div class="modal-3d-card">
+      <div class="modal-3d-icon" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fa-solid fa-id-card"></i></div>
+      <h3 class="modal-3d-title">Admin Profile</h3>
+      <div style="background:#0b0f19; padding:14px; border-radius:12px; margin: 16px 0; text-align:left;">
+        <p style="font-size:0.75rem; color:var(--text-muted);">Name</p>
+        <h4 id="infoAdminName" style="color:#fff; margin-bottom:10px;">Admin</h4>
+        <p style="font-size:0.75rem; color:var(--text-muted);">Mobile Number</p>
+        <h4 id="infoAdminPhone" style="color:var(--green);">+91 </h4>
+      </div>
+      <button class="btn-3d-cancel" style="width:100%;" onclick="closeAdminInfoModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- 6. CHANGE PASSWORD MODAL -->
+  <div class="modal-3d-overlay" id="changePasswordModal">
+    <div class="modal-3d-card">
+      <div class="modal-3d-icon"><i class="fa-solid fa-key"></i></div>
+      <h3 class="modal-3d-title">Change Password</h3>
+      <p class="modal-3d-desc">Enter your current password to set a new one.</p>
+      <input type="password" id="oldAdminPassInput" class="modal-3d-input" placeholder="Current Password" />
+      <input type="password" id="newAdminPassInput" class="modal-3d-input" placeholder="New Password" />
+      <div class="modal-3d-actions">
+        <button class="btn-3d-cancel" onclick="closeChangePasswordModal()">Cancel</button>
+        <button class="btn-3d-confirm" onclick="submitChangePassword()">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_DB_URL = "https://pay4smart-default-rtdb.firebaseio.com/";
+    const activeFirebaseDbUrl = localStorage.getItem('custom_firebase_db_url') || DEFAULT_DB_URL;
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp({ databaseURL: activeFirebaseDbUrl });
+    }
+    const db = firebase.database();
+
+    let allUsersData = {};
+    let pendingAction = null;
+    let pendingPayload = null;
+    let selectedUserForTpin = null;
+    let activeViewingUserPhone = null;
+
+    const operatorCategories = {
+      Jio: ["All plans", "True 5G Unlimited", "Unlimited", "Data Packs", "JioPhone", "yearly plans"],
+      Airtel: ["All plans", "True 5G Unlimited", "Unlimited", "Data Packs", "yearly plans"],
+      VI: ["All plans", "True 5G Unlimited", "Unlimited", "Data Packs", "yearly plans"],
+      BSNL: ["All plans", "True 5G Unlimited", "Unlimited", "Data Packs", "yearly plans"]
+    };
+
+    function updateCategoryDropdown(selectedOp) {
+      const catSelect = document.getElementById('newPlanCategory');
+      if (!catSelect) return;
+      const categories = operatorCategories[selectedOp] || ["All plans", "Unlimited", "Data Packs"];
+      catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function toggleThreeDotsMenu(e) {
+      e.stopPropagation();
+      document.getElementById('threeDotsDropdown').classList.toggle('show');
+    }
+
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('threeDotsDropdown');
+      if (menu && !e.target.closest('.header-right')) menu.classList.remove('show');
+    });
+
+    function openAdminInfoModal() {
+      document.getElementById('threeDotsDropdown').classList.remove('show');
+      document.getElementById('infoAdminName').innerText = localStorage.getItem('current_admin_name') || 'Admin';
+      document.getElementById('infoAdminPhone').innerText = "+91 " + (localStorage.getItem('current_admin_phone') || '');
+      document.getElementById('adminInfoModal').classList.add('open');
+    }
+    function closeAdminInfoModal() { document.getElementById('adminInfoModal').classList.remove('open'); }
+
+    function openChangePasswordModal() {
+      document.getElementById('threeDotsDropdown').classList.remove('show');
+      document.getElementById('oldAdminPassInput').value = '';
+      document.getElementById('newAdminPassInput').value = '';
+      document.getElementById('changePasswordModal').classList.add('open');
+    }
+    function closeChangePasswordModal() { document.getElementById('changePasswordModal').classList.remove('open'); }
+
+    function submitChangePassword() {
+      const oldPass = document.getElementById('oldAdminPassInput').value.trim();
+      const newPass = document.getElementById('newAdminPassInput').value.trim();
+      const phone = localStorage.getItem('current_admin_phone');
+
+      if (!oldPass || !newPass) return alert("Please enter both passwords!");
+
+      db.ref('admins/' + phone).once('value').then(snap => {
+        if (snap.exists() && (snap.val().password === oldPass || snap.val().pass === oldPass)) {
+          db.ref('admins/' + phone).update({ password: newPass, pass: newPass }).then(() => {
+            closeChangePasswordModal();
+            alert("Password updated successfully!");
+          });
+        } else {
+          alert("Current password did not match!");
+        }
+      });
+    }
+
+    function openFirebaseConfigModal() {
+      document.getElementById('threeDotsDropdown').classList.remove('show');
+      document.getElementById('newFirebaseDbUrlInput').value = localStorage.getItem('custom_firebase_db_url') || '';
+      document.getElementById('firebaseConfigModal').classList.add('open');
+    }
+    function closeFirebaseConfigModal() { document.getElementById('firebaseConfigModal').classList.remove('open'); }
+
+    function submitFirebaseMigration() {
+      let newUrl = document.getElementById('newFirebaseDbUrlInput').value.trim();
+      if (!newUrl || !newUrl.startsWith("https://")) return alert("Valid Firebase DB URL required!");
+      if (!newUrl.endsWith('/')) newUrl += '/';
+      closeFirebaseConfigModal();
+      requestAdminAuth('migrate_firebase', { newUrl });
+    }
+
+    function executeFirebaseMigration(newDbUrl) {
+      db.ref('/').once('value').then(snap => {
+        const fullBackupData = snap.val() || {};
+        let migrationApp;
+        try {
+          migrationApp = firebase.initializeApp({ databaseURL: newDbUrl }, "migrationAppInstance");
+        } catch (e) {
+          migrationApp = firebase.app("migrationAppInstance");
+        }
+        migrationApp.database().ref('/').set(fullBackupData).then(() => {
+          localStorage.setItem('custom_firebase_db_url', newDbUrl);
+          alert("Data migrated successfully! Reloading...");
+          location.reload();
+        });
+      });
+    }
+
+    function trigger3DLogout() {
+      localStorage.removeItem('current_admin_phone');
+      localStorage.removeItem('current_admin_name');
+      location.reload();
+    }
+
+    function handleAdminLogin() {
+      const phone = document.getElementById('loginAdminPhone').value.trim();
+      const pass = document.getElementById('loginAdminPass').value.trim();
+      const btn = document.getElementById('btnLoginAction');
+
+      if (!phone || !pass) return alert("Enter phone and password!");
+
+      btn.disabled = true;
+      btn.innerText = 'Checking...';
+
+      db.ref('admins/' + phone).once('value').then(snap => {
+        btn.disabled = false;
+        btn.innerText = 'Login to Console';
+
+        if (snap.exists()) {
+          const val = snap.val();
+          if (val.password === pass || val.pass === pass) {
+            localStorage.setItem('current_admin_phone', phone);
+            localStorage.setItem('current_admin_name', val.name || 'Admin');
+            initDashboard(val.name || 'Admin');
+          } else {
+            alert("Incorrect password!");
+          }
+        } else {
+          alert("Admin account not found!");
+        }
+      }).catch(err => {
+        btn.disabled = false;
+        btn.innerText = 'Login to Console';
+        alert("Error: " + err.message);
+      });
+    }
+
+    function initDashboard(adminName) {
+      document.getElementById('adminLoginScreen').classList.add('hidden');
+      document.getElementById('currentAdminName').innerText = "Logged as: " + adminName;
+      updateCategoryDropdown(document.getElementById('newPlanOperator').value);
+      loadAllData();
+    }
+
+    function switchTab(btn, tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function loadAllData() {
+      listenUsersAndReports();
+      listenAddMoneyRequests();
+      loadActivePlans();
+      loadMargins();
+      loadSettings();
+      loadServiceSwitches();
+    }
+
+    function listenUsersAndReports() {
+      db.ref('users').on('value', snap => {
+        allUsersData = snap.val() || {};
+        const userKeys = Object.keys(allUsersData);
+        let totalBal = 0, totalSale = 0, totalProfit = 0;
+
+        userKeys.forEach(k => {
+          const u = allUsersData[k];
+          totalBal += parseFloat(u.balance) || 0;
+          totalSale += parseFloat(u.total_sale) || 0;
+          totalProfit += parseFloat(u.total_profit) || 0;
+        });
+
+        document.getElementById('repTotalUsers').innerText = userKeys.length;
+        document.getElementById('repTotalBalance').innerText = '₹ ' + totalBal.toFixed(2);
+        document.getElementById('repTotalSale').innerText = '₹ ' + totalSale.toFixed(0);
+        document.getElementById('repTotalProfit').innerText = '₹ ' + totalProfit.toFixed(0);
+        document.getElementById('userCount').innerText = userKeys.length;
+
+        renderUserList(userKeys);
+      });
+    }
+
+    function renderUserList(userKeys) {
+      const container = document.getElementById('usersListContainer');
+      if (userKeys.length === 0) return container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:15px;">No users found.</p>';
+      let html = '';
+      userKeys.forEach(phone => {
+        const u = allUsersData[phone];
+        const isBlocked = (u.account_status === "blocked");
+        const statusClass = isBlocked ? "status-blocked" : "status-active";
+        const toggleBtn = isBlocked 
+          ? `<button class="btn-toggle-status btn-unblock" onclick="requestAdminAuth('toggle_status', {phone:'${phone}', status:'active'})"><i class="fa-solid fa-check"></i> Activate</button>`
+          : `<button class="btn-toggle-status btn-block" onclick="requestAdminAuth('toggle_status', {phone:'${phone}', status:'blocked'})"><i class="fa-solid fa-ban"></i> Deactivate</button>`;
+
+        html += `
+          <div class="user-card" data-search="${(u.name || '').toLowerCase()} ${phone}">
+            <div class="user-card-top">
+              <div>
+                <div class="user-name" onclick="openUserTransactionsModal('${phone}')" title="Click to view & manage transactions">
+                  ${u.name || 'User'} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem; color:var(--primary);"></i>
+                </div>
+                <div class="user-phone">+91 ${phone}</div>
+              </div>
+              <div class="badge-status ${statusClass}">${isBlocked ? "Blocked" : "Active"}</div>
+            </div>
+            <div class="user-stat-grid">
+              <div class="user-stat-item"><p>Balance</p><h5>₹ ${(parseFloat(u.balance) || 0).toFixed(2)}</h5></div>
+              <div class="user-stat-item"><p>Sales</p><h5>₹ ${(parseFloat(u.total_sale) || 0).toFixed(0)}</h5></div>
+              <div class="user-stat-item"><p>Profit</p><h5>₹ ${(parseFloat(u.total_profit) || 0).toFixed(0)}</h5></div>
+              <div class="user-stat-item"><p>TPIN</p><h5 style="color:var(--amber); letter-spacing:1px;">${u.tpin || '1234'}</h5></div>
+            </div>
+            <div class="user-actions">
+              ${toggleBtn}
+              <button class="btn-tpin-user" onclick="openUserTpinModal('${phone}')"><i class="fa-solid fa-key"></i> Set TPIN</button>
+              <button class="btn-del-user" onclick="requestAdminAuth('delete_user', {phone:'${phone}'})"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+          </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function filterUserList(query) {
+      const q = query.toLowerCase().trim();
+      document.querySelectorAll('#usersListContainer .user-card').forEach(card => {
+        card.style.display = card.getAttribute('data-search').includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function openUserTransactionsModal(phone) {
+      activeViewingUserPhone = phone;
+      const user = allUsersData[phone] || {};
+      document.getElementById('txnModalTitle').innerText = (user.name || 'User') + "'s Transactions";
+      document.getElementById('txnModalDesc').innerText = `Phone: +91 ${phone} | Total Balance: ₹${(parseFloat(user.balance) || 0).toFixed(2)}`;
+      renderUserTxnList(phone);
+      document.getElementById('userTxnModal').classList.add('open');
+    }
+
+    function closeUserTxnModal() {
+      document.getElementById('userTxnModal').classList.remove('open');
+      activeViewingUserPhone = null;
+    }
+
+    function renderUserTxnList(phone) {
+      const container = document.getElementById('userTxnListContainer');
+      container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:15px; font-size:0.85rem;">Loading transactions...</p>';
+
+      db.ref(`users/${phone}/history`).once('value').then(snap => {
+        if (!snap.exists()) {
+          container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">কোনো ট্রানজেকশন হিস্ট্রি পাওয়া যায়নি।</p>';
+          return;
+        }
+        const history = snap.val();
+        const txnKeys = Object.keys(history).reverse();
+        let html = '';
+        txnKeys.forEach(txnId => {
+          const item = history[txnId];
+          const isCredit = item.type === 'credit';
+          const sign = isCredit ? '+' : '-';
+          const amtClass = isCredit ? 'txn-credit' : 'txn-debit';
+
+          html += `
+            <div class="txn-item-card" id="txn_row_${txnId}">
+              <div class="txn-item-info">
+                <h5>${item.title || 'Transaction'}</h5>
+                <p>${item.desc || item.operator || 'Details N/A'}</p>
+                <p style="font-size:0.68rem; color:#64748b;">${item.time || item.createdAt || 'N/A'}</p>
+              </div>
+              <div class="txn-item-right">
+                <span class="txn-item-amount ${amtClass}">${sign}₹${parseFloat(item.amount || 0).toFixed(2)}</span>
+                <button class="btn-del-txn" title="Delete permanently" onclick="requestAdminAuth('delete_single_txn', { phone: '${phone}', txnId: '${txnId}' })">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      });
+    }
+
+    function deleteSingleTransaction(phone, txnId) {
+      db.ref(`users/${phone}/history/${txnId}`).remove().then(() => {
+        const row = document.getElementById(`txn_row_${txnId}`);
+        if (row) row.remove();
+        alert("ট্রানজেকশনটি ফায়ারবেস থেকে পার্মানেন্ট মুছে ফেলা হয়েছে!");
+      });
+    }
+
+    function handleBulkDeleteByDateRange() {
+      const fromDate = document.getElementById('bulkDateFrom').value;
+      const toDate = document.getElementById('bulkDateTo').value;
+      if (!fromDate || !toDate) return alert("Select both From Date and To Date!");
+      requestAdminAuth('bulk_delete_txns', { fromDate, toDate });
+    }
+
+    function executeBulkDeleteTxns(fromDateStr, toDateStr) {
+      const startTime = new Date(fromDateStr + "T00:00:00").getTime();
+      const endTime = new Date(toDateStr + "T23:59:59").getTime();
+      let matchedCount = 0;
+      const userPhones = Object.keys(allUsersData);
+
+      const promises = userPhones.map(phone => {
+        return db.ref(`users/${phone}/history`).once('value').then(snap => {
+          if (!snap.exists()) return;
+          const history = snap.val();
+          const updates = {};
+          Object.keys(history).forEach(txnId => {
+            const txn = history[txnId];
+            let t = txn.createdAt ? new Date(txn.createdAt).getTime() : (txn.time ? new Date(txn.time).getTime() : null);
+            if (t && t >= startTime && t <= endTime) {
+              updates[txnId] = null;
+              matchedCount++;
+            }
+          });
+          if (Object.keys(updates).length > 0) return db.ref(`users/${phone}/history`).update(updates);
+        });
+      });
+
+      Promise.all(promises).then(() => {
+        alert(`মোট ${matchedCount} টি ট্রানজেকশন পার্মানেন্ট ডিলিট করা হয়েছে!`);
+      });
+    }
+
+    function openUserTpinModal(phone) {
+      selectedUserForTpin = phone;
+      const user = allUsersData[phone] || {};
+      document.getElementById('tpinModalUserDesc').innerText = `Set new TPIN for ${user.name || 'User'} (+91 ${phone}). Current: ${user.tpin || '1234'}`;
+      document.getElementById('targetUserNewTpinInput').value = user.tpin || '';
+      document.getElementById('userTpinModal').classList.add('open');
+    }
+    function closeUserTpinModal() { document.getElementById('userTpinModal').classList.remove('open'); selectedUserForTpin = null; }
+
+    function submitUserTpinReset() {
+      const newTpin = document.getElementById('targetUserNewTpinInput').value.trim();
+      if (!newTpin || newTpin.length !== 4) return alert("Enter valid 4-digit TPIN!");
+      const targetPhone = selectedUserForTpin;
+      closeUserTpinModal();
+      requestAdminAuth('reset_user_tpin', { phone: targetPhone, newTpin });
+    }
+
+    function listenAddMoneyRequests() {
+      db.ref('add_money_requests').on('value', snap => {
+        const container = document.getElementById('addMoneyReqContainer');
+        const countSpan = document.getElementById('reqCount');
+        if (!snap.exists()) {
+          container.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.85rem; padding:15px;">No pending deposit requests.</p>';
+          countSpan.innerText = "0";
+          return;
+        }
+        const requests = snap.val();
+        const reqKeys = Object.keys(requests);
+        countSpan.innerText = reqKeys.length;
+        let html = '';
+        reqKeys.forEach(id => {
+          const r = requests[id];
+          html += `
+            <div class="req-card">
+              <div class="req-header">
+                <div>
+                  <div class="req-user">${r.userName || 'User'} (+91 ${r.userPhone})</div>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">${r.time || ''}</div>
+                </div>
+                <div style="font-size:1.15rem; font-weight:900; color:var(--green);">₹ ${parseFloat(r.amount).toFixed(2)}</div>
+              </div>
+              <div class="req-utr">UTR: ${r.utr}</div>
+              <div class="req-actions">
+                <button class="btn-approve" onclick="requestAdminAuth('approve_deposit', {reqId:'${id}', phone:'${r.userPhone}', amount:${r.amount}, utr:'${r.utr}'})">Approve</button>
+                <button class="btn-reject" onclick="requestAdminAuth('reject_deposit', {reqId:'${id}'})">Reject</button>
+              </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+      });
+    }
+
+    function loadActivePlans() {
+      db.ref('recharge_plans').on('value', snap => {
+        const container = document.getElementById('activePlansContainer');
+        if (!snap.exists()) return container.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.85rem;">No active custom plans.</p>';
+        const plans = snap.val();
+        let html = '';
+        for (let k in plans) {
+          const p = plans[k];
+          html += `
+            <div class="plan-item">
+              <div class="plan-item-left">
+                <h4>₹ ${p.price} <span style="font-size:0.8rem; color:#fff;">• ${p.operator} (${p.category || 'All plans'})</span></h4>
+                <p><strong>Validity:</strong> ${p.validity} | <strong>Data:</strong> ${p.data}</p>
+                <p style="font-size:0.75rem;">${p.desc}</p>
+              </div>
+              <button class="btn-del-plan" onclick="requestAdminAuth('delete_plan', {id:'${k}'})"><i class="fa-solid fa-trash"></i></button>
+            </div>`;
+        }
+        container.innerHTML = html;
+      });
+    }
+
+    function loadMargins() {
+      db.ref('margins').on('value', snap => {
+        if (snap.exists()) {
+          const m = snap.val();
+          if (m.pan_card !== undefined) document.getElementById('marginPanCard').value = m.pan_card;
+          if (m.airtel !== undefined) document.getElementById('marginAirtel').value = m.airtel;
+          if (m.airtel_small !== undefined) document.getElementById('marginAirtelSmall').value = m.airtel_small;
+          if (m.bsnl_combo !== undefined) document.getElementById('marginBsnlCombo').value = m.bsnl_combo;
+          if (m.bsnl_topup !== undefined) document.getElementById('marginBsnlTopup').value = m.bsnl_topup;
+          if (m.jio !== undefined) document.getElementById('marginJio').value = m.jio;
+          if (m.jio_emergency !== undefined) document.getElementById('marginJioEmergency').value = m.jio_emergency;
+          if (m.vi !== undefined) document.getElementById('marginVi').value = m.vi;
+          if (m.airtel_dth !== undefined) document.getElementById('marginAirtelDth').value = m.airtel_dth;
+          if (m.dishtv !== undefined) document.getElementById('marginDishTv').value = m.dishtv;
+          if (m.sundirect !== undefined) document.getElementById('marginSunDirect').value = m.sundirect;
+          if (m.tataplay !== undefined) document.getElementById('marginTataPlay').value = m.tataplay;
+          if (m.d2h !== undefined) document.getElementById('marginD2h').value = m.d2h;
+          if (m.postpaid_airtel !== undefined) document.getElementById('marginAirtelPostpaid').value = m.postpaid_airtel;
+          if (m.postpaid_bsnl_special !== undefined) document.getElementById('marginBsnlSpecialPostpaid').value = m.postpaid_bsnl_special;
+          if (m.postpaid_bsnl_topup !== undefined) document.getElementById('marginBsnlTopupPostpaid').value = m.postpaid_bsnl_topup;
+          if (m.postpaid !== undefined) document.getElementById('marginJioPostpaid').value = m.postpaid;
+          if (m.postpaid_vi !== undefined) document.getElementById('marginViPostpaid').value = m.postpaid_vi;
+          if (m.google_play !== undefined) document.getElementById('marginGooglePlay').value = m.google_play;
+          if (m.elec_south_bihar !== undefined) document.getElementById('marginSouthBihar').value = m.elec_south_bihar;
+          if (m.elec_north_bihar !== undefined) document.getElementById('marginNorthBihar').value = m.elec_north_bihar;
+          if (m.elec_tripura !== undefined) document.getElementById('marginTripuraElec').value = m.elec_tripura;
+          if (m.elec_assam !== undefined) document.getElementById('marginAssamPower').value = m.elec_assam;
+          if (m.electricity !== undefined) document.getElementById('marginWbsedcl').value = m.electricity;
+          if (m.fastag_icici !== undefined) document.getElementById('marginIciciFastag').value = m.fastag_icici;
+          if (m.fastag_airtel !== undefined) document.getElementById('marginAirtelFastag').value = m.fastag_airtel;
+          if (m.fastag_paytm !== undefined) document.getElementById('marginPaytmFastag').value = m.fastag_paytm;
+          if (m.fastag_idfc !== undefined) document.getElementById('marginIdfcFastag').value = m.fastag_idfc;
+          if (m.fastag_axis !== undefined) document.getElementById('marginAxisFastag').value = m.fastag_axis;
+          if (m.fastag_bob !== undefined) document.getElementById('marginBobFastag').value = m.fastag_bob;
+          if (m.fastag_hdfc !== undefined) document.getElementById('marginHdfcFastag').value = m.fastag_hdfc;
+          if (m.fastag_ihmcl !== undefined) document.getElementById('marginIhmclFastag').value = m.fastag_ihmcl;
+          if (m.fastag_indusind !== undefined) document.getElementById('marginIndusindFastag').value = m.fastag_indusind;
+          if (m.fastag_sbi !== undefined) document.getElementById('marginSbiFastag').value = m.fastag_sbi;
+        }
+      });
+    }
+
+    function loadSettings() {
+      db.ref('app_settings').on('value', snap => {
+        if (snap.exists()) {
+          const s = snap.val();
+          if (s.app_host_url) document.getElementById('adminAppHostUrl').value = s.app_host_url;
+          if (s.recharge_api_url) document.getElementById('adminRechargeApiUrl').value = s.recharge_api_url;
+          if (s.recharge_api_token) document.getElementById('adminRechargeApiToken').value = s.recharge_api_token;
+          if (s.recharge_callback_url) document.getElementById('adminRechargeCallbackUrl').value = s.recharge_callback_url;
+          if (s.sms_api_url) document.getElementById('adminSmsApiUrl').value = s.sms_api_url;
+          if (s.sms_api_token) document.getElementById('adminSmsApiToken').value = s.sms_api_token;
+          if (s.gateway_api_url) document.getElementById('adminGatewayApiUrl').value = s.gateway_api_url;
+          if (s.dghost_user_token) document.getElementById('adminDghostUserToken').value = s.dghost_user_token;
+          if (s.support_whatsapp) document.getElementById('adminWhatsappNumber').value = s.support_whatsapp;
+          if (s.receiver_upi_id) document.getElementById('adminUpiIdInput').value = s.receiver_upi_id;
+        }
+      });
+
+      db.ref('app_settings/pan_api_settings').on('value', snap => {
+        if (snap.exists()) {
+          const p = snap.val();
+          if (p.url) document.getElementById('adminPanApiUrl').value = p.url;
+          if (p.token) document.getElementById('adminPanApiToken').value = p.token;
+          if (p.fee) document.getElementById('adminPanFee').value = p.fee;
+          if (p.operator_code) document.getElementById('adminPanOpCode').value = p.operator_code;
+          if (p.resume_url) document.getElementById('adminPanResumeUrl').value = p.resume_url;
+        }
+      });
+
+      db.ref('provider_codes').once('value').then(snap => {
+        if (snap.exists()) {
+          const c = snap.val();
+          for (let k in c) {
+            const el = document.getElementById('pcode_' + k);
+            if (el) el.value = c[k];
+          }
+        }
+      });
+    }
+
+    function loadServiceSwitches() {
+      db.ref('app_settings/service_switches').on('value', snap => {
+        if (snap.exists()) {
+          const sw = snap.val();
+          for (let key in sw) {
+            const el = document.getElementById('srv_' + key);
+            if (el) el.checked = sw[key];
+          }
+        }
+      });
+    }
+
+    function requestAdminAuth(action, payload = null) {
+      pendingAction = action;
+      pendingPayload = payload;
+      document.getElementById('password3dModal').classList.add('open');
+    }
+    function closePassword3dModal() {
+      document.getElementById('password3dModal').classList.remove('open');
+      pendingAction = null;
+      pendingPayload = null;
+    }
+
+    function verifyPasswordAndExecute() {
+      const pass = document.getElementById('adminSecurityPasswordInput').value.trim();
+      const phone = localStorage.getItem('current_admin_phone');
+
+      db.ref('admins/' + phone).once('value').then(snap => {
+        if (snap.exists() && (snap.val().password === pass || snap.val().pass === pass)) {
+          const act = pendingAction;
+          const payload = pendingPayload;
+          closePassword3dModal();
+
+          if (act === 'save_margins') {
+            db.ref('margins').update({
+              pan_card: parseFloat(document.getElementById('marginPanCard').value) || 5.0,
+              airtel: parseFloat(document.getElementById('marginAirtel').value) || 2.5,
+              airtel_small: parseFloat(document.getElementById('marginAirtelSmall').value) || 0.0,
+              bsnl_combo: parseFloat(document.getElementById('marginBsnlCombo').value) || 5.0,
+              bsnl_topup: parseFloat(document.getElementById('marginBsnlTopup').value) || 5.0,
+              jio: parseFloat(document.getElementById('marginJio').value) || 1.4,
+              jio_emergency: parseFloat(document.getElementById('marginJioEmergency').value) || 0.0,
+              vi: parseFloat(document.getElementById('marginVi').value) || 3.8,
+              airtel_dth: parseFloat(document.getElementById('marginAirtelDth').value) || 4.0,
+              dishtv: parseFloat(document.getElementById('marginDishTv').value) || 4.0,
+              sundirect: parseFloat(document.getElementById('marginSunDirect').value) || 4.0,
+              tataplay: parseFloat(document.getElementById('marginTataPlay').value) || 4.0,
+              d2h: parseFloat(document.getElementById('marginD2h').value) || 4.0,
+              postpaid_airtel: parseFloat(document.getElementById('marginAirtelPostpaid').value) || 0.3,
+              postpaid_bsnl_special: parseFloat(document.getElementById('marginBsnlSpecialPostpaid').value) || 0.3,
+              postpaid_bsnl_topup: parseFloat(document.getElementById('marginBsnlTopupPostpaid').value) || 0.3,
+              postpaid: parseFloat(document.getElementById('marginJioPostpaid').value) || 0.3,
+              postpaid_vi: parseFloat(document.getElementById('marginViPostpaid').value) || 4.2,
+              google_play: parseFloat(document.getElementById('marginGooglePlay').value) || 1.6,
+              elec_south_bihar: parseFloat(document.getElementById('marginSouthBihar').value) || 1.0,
+              elec_north_bihar: parseFloat(document.getElementById('marginNorthBihar').value) || 1.0,
+              elec_tripura: parseFloat(document.getElementById('marginTripuraElec').value) || 1.0,
+              elec_assam: parseFloat(document.getElementById('marginAssamPower').value) || 1.0,
+              electricity: parseFloat(document.getElementById('marginWbsedcl').value) || 1.0,
+              fastag_icici: parseFloat(document.getElementById('marginIciciFastag').value) || 0.2,
+              fastag_airtel: parseFloat(document.getElementById('marginAirtelFastag').value) || 0.2,
+              fastag_paytm: parseFloat(document.getElementById('marginPaytmFastag').value) || 0.2,
+              fastag_idfc: parseFloat(document.getElementById('marginIdfcFastag').value) || 0.2,
+              fastag_axis: parseFloat(document.getElementById('marginAxisFastag').value) || 0.2,
+              fastag_bob: parseFloat(document.getElementById('marginBobFastag').value) || 0.5,
+              fastag_hdfc: parseFloat(document.getElementById('marginHdfcFastag').value) || 0.5,
+              fastag_ihmcl: parseFloat(document.getElementById('marginIhmclFastag').value) || 0.5,
+              fastag_indusind: parseFloat(document.getElementById('marginIndusindFastag').value) || 0.5,
+              fastag_sbi: parseFloat(document.getElementById('marginSbiFastag').value) || 0.5
+            }).then(() => alert("All margins updated successfully!"));
+          } else if (act === 'save_pan_api') {
+            db.ref('app_settings/pan_api_settings').set({
+              url: document.getElementById('adminPanApiUrl').value.trim(),
+              token: document.getElementById('adminPanApiToken').value.trim(),
+              fee: parseFloat(document.getElementById('adminPanFee').value) || 107,
+              operator_code: document.getElementById('adminPanOpCode').value.trim() || 'PAN01',
+              resume_url: document.getElementById('adminPanResumeUrl').value.trim()
+            }).then(() => alert("PAN Card API Settings saved successfully!"));
+          } else if (act === 'save_service_switches') {
+            const switches = {
+              mobile: document.getElementById('srv_mobile').checked,
+              dth: document.getElementById('srv_dth').checked,
+              fastag: document.getElementById('srv_fastag').checked,
+              google_play: document.getElementById('srv_google_play').checked,
+              postpaid: document.getElementById('srv_postpaid').checked,
+              electricity: document.getElementById('srv_electricity').checked,
+              emi: document.getElementById('srv_emi').checked,
+              insurance: document.getElementById('srv_insurance').checked,
+              broadband: document.getElementById('srv_broadband').checked,
+              lpg: document.getElementById('srv_lpg').checked,
+              water: document.getElementById('srv_water').checked,
+              pan: document.getElementById('srv_pan').checked
+            };
+            db.ref('app_settings/service_switches').set(switches).then(() => alert("Services updated!"));
+          } else if (act === 'save_host_url') {
+            db.ref('app_settings').update({
+              app_host_url: document.getElementById('adminAppHostUrl').value.trim()
+            }).then(() => alert("Base URL updated!"));
+          } else if (act === 'save_recharge_api') {
+            const providerCodes = {
+              airtel: parseInt(document.getElementById('pcode_airtel').value) || 5,
+              airtel_small: parseInt(document.getElementById('pcode_airtel_small').value) || 39,
+              bsnl_special: parseInt(document.getElementById('pcode_bsnl_special').value) || 6,
+              bsnl_topup: parseInt(document.getElementById('pcode_bsnl_topup').value) || 7,
+              jio: parseInt(document.getElementById('pcode_jio').value) || 8,
+              jio_emergency: parseInt(document.getElementById('pcode_jio_emergency').value) || 9,
+              vi: parseInt(document.getElementById('pcode_vi').value) || 10,
+              airtel_dth: parseInt(document.getElementById('pcode_airtel_dth').value) || 11,
+              dishtv: parseInt(document.getElementById('pcode_dishtv').value) || 12,
+              sundirect: parseInt(document.getElementById('pcode_sundirect').value) || 13,
+              tataplay: parseInt(document.getElementById('pcode_tataplay').value) || 14,
+              d2h: parseInt(document.getElementById('pcode_d2h').value) || 15,
+              postpaid_airtel: parseInt(document.getElementById('pcode_postpaid_airtel').value) || 16,
+              postpaid_bsnl_special: parseInt(document.getElementById('pcode_postpaid_bsnl_special').value) || 17,
+              postpaid_bsnl_topup: parseInt(document.getElementById('pcode_postpaid_bsnl_topup').value) || 18,
+              postpaid: parseInt(document.getElementById('pcode_postpaid').value) || 19,
+              postpaid_vi: parseInt(document.getElementById('pcode_postpaid_vi').value) || 21,
+              google_play: parseInt(document.getElementById('pcode_google_play').value) || 23,
+              elec_south_bihar: parseInt(document.getElementById('pcode_elec_south_bihar').value) || 24,
+              elec_north_bihar: parseInt(document.getElementById('pcode_elec_north_bihar').value) || 25,
+              elec_tripura: parseInt(document.getElementById('pcode_elec_tripura').value) || 26,
+              elec_assam: parseInt(document.getElementById('pcode_elec_assam').value) || 27,
+              electricity: parseInt(document.getElementById('pcode_electricity').value) || 28,
+              fastag_icici: parseInt(document.getElementById('pcode_fastag_icici').value) || 29,
+              fastag_airtel: parseInt(document.getElementById('pcode_fastag_airtel').value) || 30,
+              fastag_paytm: parseInt(document.getElementById('pcode_fastag_paytm').value) || 31,
+              fastag_idfc: parseInt(document.getElementById('pcode_fastag_idfc').value) || 32,
+              fastag_axis: parseInt(document.getElementById('pcode_fastag_axis').value) || 33,
+              fastag_bob: parseInt(document.getElementById('pcode_fastag_bob').value) || 34,
+              fastag_hdfc: parseInt(document.getElementById('pcode_fastag_hdfc').value) || 35,
+              fastag_ihmcl: parseInt(document.getElementById('pcode_fastag_ihmcl').value) || 36,
+              fastag_indusind: parseInt(document.getElementById('pcode_fastag_indusind').value) || 37,
+              fastag_sbi: parseInt(document.getElementById('pcode_fastag_sbi').value) || 38
+            };
+            db.ref('provider_codes').set(providerCodes);
+            db.ref('app_settings').update({
+              recharge_api_url: document.getElementById('adminRechargeApiUrl').value.trim(),
+              recharge_api_token: document.getElementById('adminRechargeApiToken').value.trim(),
+              recharge_callback_url: document.getElementById('adminRechargeCallbackUrl').value.trim()
+            }).then(() => alert("Recharge settings & all 33 codes updated!"));
+          } else if (act === 'save_sms_api') {
+            db.ref('app_settings').update({
+              sms_api_url: document.getElementById('adminSmsApiUrl').value.trim(),
+              sms_api_token: document.getElementById('adminSmsApiToken').value.trim()
+            }).then(() => alert("SMS settings saved!"));
+          } else if (act === 'save_dghost_gateway') {
+            db.ref('app_settings').update({
+              gateway_api_url: document.getElementById('adminGatewayApiUrl').value.trim(),
+              dghost_user_token: document.getElementById('adminDghostUserToken').value.trim()
+            }).then(() => alert("Gateway settings saved!"));
+          } else if (act === 'save_support') {
+            db.ref('app_settings/support_whatsapp').set(document.getElementById('adminWhatsappNumber').value.trim()).then(() => alert("Support number updated!"));
+          } else if (act === 'save_upi') {
+            db.ref('app_settings/receiver_upi_id').set(document.getElementById('adminUpiIdInput').value.trim()).then(() => alert("UPI ID updated!"));
+          } else if (act === 'create_plan') {
+            db.ref('recharge_plans').push({
+              operator: document.getElementById('newPlanOperator').value,
+              category: document.getElementById('newPlanCategory').value,
+              price: parseInt(document.getElementById('newPlanPrice').value.trim()),
+              validity: document.getElementById('newPlanValidity').value.trim(),
+              data: document.getElementById('newPlanData').value.trim(),
+              desc: document.getElementById('newPlanDesc').value.trim()
+            }).then(() => alert("Plan Published!"));
+          } else if (act === 'delete_plan') {
+            db.ref('recharge_plans/' + payload.id).remove().then(() => alert("Plan deleted!"));
+          } else if (act === 'approve_deposit') {
+            db.ref('users/' + payload.phone + '/balance').transaction(b => (b || 0) + parseFloat(payload.amount)).then(() => {
+              db.ref('add_money_requests/' + payload.reqId).remove();
+              alert("Deposit approved!");
+            });
+          } else if (act === 'reject_deposit') {
+            db.ref('add_money_requests/' + payload.reqId).remove().then(() => alert("Request rejected!"));
+          } else if (act === 'toggle_status') {
+            db.ref('users/' + payload.phone).update({ account_status: payload.status }).then(() => alert("Status updated!"));
+          } else if (act === 'delete_user') {
+            db.ref('users/' + payload.phone).remove().then(() => alert("User deleted!"));
+          } else if (act === 'reset_user_tpin') {
+            db.ref('users/' + payload.phone).update({ tpin: payload.newTpin }).then(() => alert("TPIN updated!"));
+          } else if (act === 'delete_single_txn') {
+            deleteSingleTransaction(payload.phone, payload.txnId);
+          } else if (act === 'bulk_delete_txns') {
+            executeBulkDeleteTxns(payload.fromDate, payload.toDate);
+          } else if (act === 'migrate_firebase') {
+            executeFirebaseMigration(payload.newUrl);
+          }
+        } else {
+          alert("Incorrect Password!");
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const phone = localStorage.getItem('current_admin_phone');
+      if (phone) {
+        document.getElementById('adminLoginScreen').classList.add('hidden');
+        document.getElementById('currentAdminName').innerText = "Logged as: " + (localStorage.getItem('current_admin_name') || 'Admin');
+        loadAllData();
+      }
+    });
+  </script>
+</body>
+</html>
