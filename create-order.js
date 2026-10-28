@@ -1,4 +1,4 @@
-Const https = require("https");
+const https = require("https");
 
 function fetchFirebaseConfig() {
   return new Promise((resolve) => {
