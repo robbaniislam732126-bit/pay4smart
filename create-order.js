@@ -79,7 +79,9 @@ exports.handler = async (event) => {
 
     const GATEWAY_URL = firebaseSettings.gateway_api_url || "https://pay.dghost.in/api/create-order";
     const USER_TOKEN = firebaseSettings.dghost_user_token || "bf16ca864f7a41e0e9fa5b11ba080f48";
-    const REDIRECT_URL = firebaseSettings.dghost_redirect_url || "https://pay4smart.netlify.app";
+    
+    // সরাসরি রেন্ডার সার্ভারের কলব্যাক ইউআরএল সেট করা হলো
+    const REDIRECT_URL = "https://pay4smart-2.onrender.com/payment-callback";
 
     const orderId = "DEP" + Date.now();
 
