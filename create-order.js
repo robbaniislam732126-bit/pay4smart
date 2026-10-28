@@ -1,4 +1,4 @@
-const https = require("https");
+Const https = require("https");
 
 function fetchFirebaseConfig() {
   return new Promise((resolve) => {
@@ -80,7 +80,6 @@ exports.handler = async (event) => {
     const GATEWAY_URL = firebaseSettings.gateway_api_url || "https://pay.dghost.in/api/create-order";
     const USER_TOKEN = firebaseSettings.dghost_user_token || "bf16ca864f7a41e0e9fa5b11ba080f48";
     const REDIRECT_URL = firebaseSettings.dghost_redirect_url || "https://pay4smart.netlify.app";
-    const CALLBACK_URL = firebaseSettings.gateway_callback_url || "https://pay4smart.netlify.app/.netlify/functions/payment-callback";
 
     const orderId = "DEP" + Date.now();
 
@@ -92,15 +91,13 @@ exports.handler = async (event) => {
       createdAt: Date.now()
     });
 
+    // পেমেন্ট গেটওয়ের অফিশিয়াল ডকুমেন্টেশন অনুযায়ী সঠিক প্যারামিটার
     const params = new URLSearchParams({
       user_token: USER_TOKEN,
       order_id: orderId,
       amount: parseFloat(amount),
       customer_mobile: phone,
-      customer_name: name || "User",
-      redirect_url: REDIRECT_URL,
-      callback_url: CALLBACK_URL,
-      webhook_url: CALLBACK_URL
+      redirect_url: REDIRECT_URL
     });
 
     const response = await fetch(GATEWAY_URL, {
