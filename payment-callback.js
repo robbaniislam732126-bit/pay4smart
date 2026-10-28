@@ -76,7 +76,6 @@ exports.handler = async (event) => {
   try {
     let payload = {};
 
-    // Parse body if POST request
     if (event.body) {
       try {
         payload = JSON.parse(event.body);
@@ -89,7 +88,6 @@ exports.handler = async (event) => {
       }
     }
 
-    // Merge query parameters (handles GET requests and URL parameters)
     if (event.queryStringParameters && Object.keys(event.queryStringParameters).length > 0) {
       payload = { ...payload, ...event.queryStringParameters };
     }
@@ -103,7 +101,6 @@ exports.handler = async (event) => {
     let phone = payload.customer_mobile || payload.phone || payload.mobile;
     const utr = payload.utr || payload.UTR || payload.txnId || ("DEP" + Date.now());
 
-    // যদি গেটওয়ে শুধু order_id পাঠায় কিন্তু স্ট্যাটাস বা অ্যামাউন্ট না দেয়, তবে ডাটাবেসের pending_orders থেকে তুলে আনা
     if ((!phone || isNaN(amount) || amount <= 0) && orderId) {
       const pendingInfo = await fetchFbData(`pending_orders/${orderId}`);
       if (pendingInfo) {
@@ -116,18 +113,23 @@ exports.handler = async (event) => {
 
     const txnId = orderId || utr;
 
-    // GET রিকোয়েস্ট আসলে এবং সরাসরি রিডাইরেক্ট করলে ইউজারের অ্যাপে সাকসেস পেজ দেখানোর ব্যবস্থা
-    if (event.httpMethod === "GET" && Object.keys(payload).length === 0) {
+    // যদি রিকোয়েস্টে কোনো ডাটা না থাকে (খালি পেজ রিডাইরেক্ট), তবে বাটনসহ সুন্দর পেজ দেখানো
+    if ((event.httpMethod === "GET" || event.httpMethod === "HEAD") && Object.keys(payload).length === 0) {
       return {
         statusCode: 200,
         headers: { "Content-Type": "text/html; charset=utf-8" },
         body: `<!DOCTYPE html>
         <html>
-        <head><title>Payment Status</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-        <body style="text-align:center;font-family:sans-serif;margin-top:100px;background:#f4f6f8;">
-          <h2 style="color:#28a745;">Payment Redirected Successfully!</h2>
-          <p>Please check your Pay4Smart app wallet.</p>
-          <script>setTimeout(() => { window.location.href = "app://pay4smart"; }, 2000);</script>
+        <head>
+          <title>Payment Status</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+        </head>
+        <body style="text-align:center;font-family:sans-serif;margin-top:80px;background:#f4f6f8;">
+          <div style="background:white;padding:30px;border-radius:10px;display:inline-block;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+            <h2 style="color:#28a745;margin-bottom:10px;">Payment Redirected Successfully!</h2>
+            <p style="color:#555;margin-bottom:20px;">Please check your Pay4Smart app wallet.</p>
+            <a href="app://pay4smart" style="background:#007bff;color:white;padding:12px 25px;text-decoration:none;border-radius:5px;font-weight:bold;display:inline-block;">Return to App</a>
+          </div>
         </body>
         </html>`
       };
@@ -141,7 +143,7 @@ exports.handler = async (event) => {
       status === 1 || 
       status === "TRUE" || 
       status === true ||
-      orderId // যদি শুধু অর্ডার আইডি পাস হয়ে আসে তবে সেটিকে সফল হিসেবে ধরে ডাটা মেলানো
+      orderId 
     );
 
     if (isSuccess && phone && amount > 0) {
