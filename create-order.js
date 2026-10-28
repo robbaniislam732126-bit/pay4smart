@@ -17,7 +17,6 @@ function fetchFirebaseConfig() {
   });
 }
 
-// ফায়ারবেসে অর্ডার আইডি এবং ফোন নম্বর সেভ করার ফাংশন
 function savePendingOrder(orderId, orderData) {
   return new Promise((resolve) => {
     const dataStr = JSON.stringify(orderData);
@@ -57,7 +56,10 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { amount, phone, name } = JSON.parse(event.body || "{}");
+    const bodyData = JSON.parse(event.body || "{}");
+    const { amount, phone, name } = bodyData;
+
+    console.log("[PAYMENT GATEWAY INITIATE] Payload:", { amount, phone, name });
 
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       return { 
@@ -79,13 +81,10 @@ exports.handler = async (event) => {
 
     const GATEWAY_URL = firebaseSettings.gateway_api_url || "https://pay.dghost.in/api/create-order";
     const USER_TOKEN = firebaseSettings.dghost_user_token || "bf16ca864f7a41e0e9fa5b11ba080f48";
-    
-    // সরাসরি রেন্ডার সার্ভারের কলব্যাক ইউআরএল সেট করা হলো
     const REDIRECT_URL = "https://pay4smart-2.onrender.com/payment-callback";
 
     const orderId = "DEP" + Date.now();
 
-    // পেমেন্ট শুরুর আগেই ডাটাবেসে অর্ডার আইডির সাথে ফোন নম্বর জমা রাখা
     await savePendingOrder(orderId, {
       phone: phone,
       amount: parseFloat(amount),
@@ -93,7 +92,7 @@ exports.handler = async (event) => {
       createdAt: Date.now()
     });
 
-    // পেমেন্ট গেটওয়ের অফিশিয়াল ডকুমেন্টেশন অনুযায়ী সঠিক প্যারামিটার
+    // পেমেন্ট গেটওয়ের অফিশিয়াল ডকুমেন্টেশন অনুযায়ী শুধুমাত্র প্রয়োজনীয় প্যারামিটারগুলো পাঠানো হচ্ছে[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)
     const params = new URLSearchParams({
       user_token: USER_TOKEN,
       order_id: orderId,
@@ -113,7 +112,6 @@ exports.handler = async (event) => {
     const resData = await response.json();
     console.log("Gateway Response:", resData);
 
-    // সব সম্ভাব্য ফরম্যাট থেকে পেমেন্ট লিংক সঠিকভাবে খুঁজে বের করার লজিক
     const paymentUrl = resData.payment_url || 
                        resData.url || 
                        resData.link || 
