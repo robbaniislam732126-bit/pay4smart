@@ -2,7 +2,7 @@ const https = require("https");
 const axios = require("axios");
 const { HttpsProxyAgent } = require("https-proxy-agent");
 
-// Webshare ফিক্সড প্রক্সি কনফিগারেশন (আইপি: 45.38.107.97)
+// Webshare ফিক্সড প্রক্সি কনফিগারেশন
 const proxyUrl = "http://bdhgmqzy:hbo9peyy3r88@45.38.107.97:6014";
 const httpsAgent = new HttpsProxyAgent(proxyUrl);
 
@@ -133,9 +133,9 @@ exports.handler = async (event) => {
       .replace(/{ORDER_ID}/g, encodeURIComponent(apiOrderId))
       .replace(/{CALLBACK_URL}/g, encodeURIComponent(callbackUrl));
 
-    // Webshare প্রক্সি (45.38.107.97) দিয়ে এপিআই কল পাঠানো
+    // Payicon API GET/POST হ্যান্ডলিং
     const response = await axios({
-      method: "POST",
+      method: "GET",
       url: targetUrl,
       headers: {
         "Accept": "*/*",
@@ -211,7 +211,7 @@ exports.handler = async (event) => {
 
       // FASTag
       else if (pCode >= 29 && pCode <= 33) marginRate = 0.2;
-      else if (pCode >= 34 && pCode <= 35) marginRate = 0.5;
+      else if (pCode >= 34 && pCode <= 38) marginRate = 0.5;
 
       let commission = 0;
       if (isFlat) {
