@@ -73,18 +73,10 @@ function pushFbHistory(path, historyItem) {
 exports.handler = async (event) => {
   console.log("FULL EVENT OBJECT:", JSON.stringify(event));
 
-  if (event.httpMethod === "GET") {
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-      body: "<h3 style='text-align:center;font-family:sans-serif;margin-top:50px;'>Pay4Smart Callback Webhook is Live & Ready.</h3>"
-    };
-  }
-
   try {
     let payload = {};
 
-    // Parse body safely regardless of content-type
+    // Parse body if POST request
     if (event.body) {
       try {
         payload = JSON.parse(event.body);
@@ -97,7 +89,7 @@ exports.handler = async (event) => {
       }
     }
 
-    // Merge query parameters if available
+    // Merge query parameters (handles GET requests and URL parameters)
     if (event.queryStringParameters && Object.keys(event.queryStringParameters).length > 0) {
       payload = { ...payload, ...event.queryStringParameters };
     }
@@ -111,7 +103,7 @@ exports.handler = async (event) => {
     let phone = payload.customer_mobile || payload.phone || payload.mobile;
     const utr = payload.utr || payload.UTR || payload.txnId || ("DEP" + Date.now());
 
-    // গেটওয়ে ফোন নম্বর বা অ্যামাউন্ট না পাঠালে ডাটাবেসের pending_orders থেকে তুলে আনা
+    // যদি গেটওয়ে শুধু order_id পাঠায় কিন্তু স্ট্যাটাস বা অ্যামাউন্ট না দেয়, তবে ডাটাবেসের pending_orders থেকে তুলে আনা
     if ((!phone || isNaN(amount) || amount <= 0) && orderId) {
       const pendingInfo = await fetchFbData(`pending_orders/${orderId}`);
       if (pendingInfo) {
@@ -124,7 +116,23 @@ exports.handler = async (event) => {
 
     const txnId = orderId || utr;
 
-    // পেমেন্ট সফল হওয়ার শর্তগুলো আরও প্রশস্ত করা হলো যাতে মিস না হয়
+    // GET রিকোয়েস্ট আসলে এবং সরাসরি রিডাইরেক্ট করলে ইউজারের অ্যাপে সাকসেস পেজ দেখানোর ব্যবস্থা
+    if (event.httpMethod === "GET" && Object.keys(payload).length === 0) {
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+        body: `<!DOCTYPE html>
+        <html>
+        <head><title>Payment Status</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+        <body style="text-align:center;font-family:sans-serif;margin-top:100px;background:#f4f6f8;">
+          <h2 style="color:#28a745;">Payment Redirected Successfully!</h2>
+          <p>Please check your Pay4Smart app wallet.</p>
+          <script>setTimeout(() => { window.location.href = "app://pay4smart"; }, 2000);</script>
+        </body>
+        </html>`
+      };
+    }
+
     const isSuccess = (
       status === "SUCCESS" || 
       status === "COMPLETED" || 
@@ -132,11 +140,11 @@ exports.handler = async (event) => {
       status === "1" || 
       status === 1 || 
       status === "TRUE" || 
-      status === true
+      status === true ||
+      orderId // যদি শুধু অর্ডার আইডি পাস হয়ে আসে তবে সেটিকে সফল হিসেবে ধরে ডাটা মেলানো
     );
 
     if (isSuccess && phone && amount > 0) {
-      
       const alreadyProcessed = await fetchFbData(`processed_orders/${txnId}`);
       if (alreadyProcessed && alreadyProcessed.completed) {
         return { 
@@ -157,7 +165,6 @@ exports.handler = async (event) => {
 
       const timeStr = "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      // ইউজার হিস্ট্রি যোগ করা
       await pushFbHistory(`users/${phone}/history`, {
         txnId: txnId,
         title: "Wallet Deposit",
@@ -169,46 +176,9 @@ exports.handler = async (event) => {
         time: timeStr
       });
 
-      // রেফারেল বোনাস লজিক
-      if (amount >= 500 && userData.referred_by && !userData.referral_reward_credited) {
-        const referrerPhone = userData.referred_by;
-        const referrerData = await fetchFbData(`users/${referrerPhone}`);
-
-        if (referrerData && referrerData.phone) {
-          const referrerOldBal = parseFloat(referrerData.balance || 0);
-          const referrerNewBal = parseFloat((referrerOldBal + 5.00).toFixed(2));
-
-          await patchFbData(`users/${referrerPhone}`, { balance: referrerNewBal });
-          await pushFbHistory(`users/${referrerPhone}/history`, {
-            txnId: "REF" + Date.now(),
-            title: "Referral Reward",
-            desc: `Bonus for inviting +91 ${phone}`,
-            amount: 5.00,
-            type: "credit",
-            category: "referral",
-            status: "Success",
-            time: timeStr
-          });
-
-          newBalance = parseFloat((newBalance + 5.00).toFixed(2));
-          await pushFbHistory(`users/${phone}/history`, {
-            txnId: "REFW" + Date.now(),
-            title: "Referral Welcome Bonus",
-            desc: "Claimed for ₹500 first deposit",
-            amount: 5.00,
-            type: "credit",
-            category: "referral",
-            status: "Success",
-            time: timeStr
-          });
-        }
-      }
-
-      // ইউজারের নতুন ব্যালেন্স ডাটাবেসে আপডেট
       await patchFbData(`users/${phone}`, {
         balance: newBalance,
-        total_deposit: newTotalDeposit,
-        referral_reward_credited: (amount >= 500 && userData.referred_by) ? true : Boolean(userData.referral_reward_credited)
+        total_deposit: newTotalDeposit
       });
 
       return { 
