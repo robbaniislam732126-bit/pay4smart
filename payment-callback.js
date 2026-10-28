@@ -1,4 +1,5 @@
 const https = require("https");
+const querystring = require("querystring");
 
 function fetchFbData(path) {
   return new Promise((resolve, reject) => {
@@ -21,7 +22,10 @@ function putFbData(path, payload) {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(dataStr)
       }
-    }, resolve);
+    }, (res) => {
+      res.on("data", () => {});
+      res.on("end", () => resolve());
+    });
     req.on("error", reject);
     req.write(dataStr);
     req.end();
@@ -37,7 +41,10 @@ function patchFbData(path, payload) {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(dataStr)
       }
-    }, resolve);
+    }, (res) => {
+      res.on("data", () => {});
+      res.on("end", () => resolve());
+    });
     req.on("error", reject);
     req.write(dataStr);
     req.end();
@@ -53,7 +60,10 @@ function pushFbHistory(path, historyItem) {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(dataStr)
       }
-    }, resolve);
+    }, (res) => {
+      res.on("data", () => {});
+      res.on("end", () => resolve());
+    });
     req.on("error", reject);
     req.write(dataStr);
     req.end();
@@ -61,8 +71,7 @@ function pushFbHistory(path, historyItem) {
 }
 
 exports.handler = async (event) => {
-  console.log("CALLBACK EVENT BODY:", event.body);
-  console.log("CALLBACK QUERY PARAMS:", event.queryStringParameters);
+  console.log("FULL EVENT OBJECT:", JSON.stringify(event));
 
   if (event.httpMethod === "GET") {
     return {
@@ -74,43 +83,67 @@ exports.handler = async (event) => {
 
   try {
     let payload = {};
+
+    // Parse body safely regardless of content-type
     if (event.body) {
       try {
         payload = JSON.parse(event.body);
       } catch (e) {
-        const qs = require("querystring");
-        payload = qs.parse(event.body);
+        try {
+          payload = querystring.parse(event.body);
+        } catch (err) {
+          payload = {};
+        }
       }
     }
 
+    // Merge query parameters if available
     if (event.queryStringParameters && Object.keys(event.queryStringParameters).length > 0) {
       payload = { ...payload, ...event.queryStringParameters };
     }
 
-    const status = (payload.status || payload.STATUS || "").toString().toUpperCase();
-    const orderId = payload.order_id || payload.orderId;
+    console.log("PARSED PAYLOAD:", payload);
+
+    const rawStatus = payload.status || payload.STATUS || "";
+    const status = rawStatus.toString().toUpperCase();
+    const orderId = payload.order_id || payload.orderId || payload.order_ID;
     let amount = parseFloat(payload.amount);
     let phone = payload.customer_mobile || payload.phone || payload.mobile;
+    const utr = payload.utr || payload.UTR || payload.txnId || ("DEP" + Date.now());
 
-    // গেটওয়ে ফোন নম্বর না পাঠালে অর্ডার আইডি দিয়ে ডাটাবেস থেকে ফোন খুঁজে আনা
-    if (!phone && orderId) {
+    // গেটওয়ে ফোন নম্বর বা অ্যামাউন্ট না পাঠালে ডাটাবেসের pending_orders থেকে তুলে আনা
+    if ((!phone || isNaN(amount) || amount <= 0) && orderId) {
       const pendingInfo = await fetchFbData(`pending_orders/${orderId}`);
       if (pendingInfo) {
-        phone = pendingInfo.phone;
+        if (!phone) phone = pendingInfo.phone;
         if (!amount || isNaN(amount)) {
           amount = parseFloat(pendingInfo.amount);
         }
       }
     }
 
-    const txnId = orderId || payload.utr || ("DEP" + Date.now());
+    const txnId = orderId || utr;
 
-    // পেমেন্ট সফল হলে এবং ফোন নম্বর পাওয়া গেলে ওয়ালেট আপডেট করা
-    if ((status === "SUCCESS" || status === "COMPLETED" || payload.status === 1 || payload.status === "1") && phone && amount > 0) {
+    // পেমেন্ট সফল হওয়ার শর্তগুলো আরও প্রশস্ত করা হলো যাতে মিস না হয়
+    const isSuccess = (
+      status === "SUCCESS" || 
+      status === "COMPLETED" || 
+      status === "PAID" || 
+      status === "1" || 
+      status === 1 || 
+      status === "TRUE" || 
+      status === true
+    );
+
+    if (isSuccess && phone && amount > 0) {
       
       const alreadyProcessed = await fetchFbData(`processed_orders/${txnId}`);
       if (alreadyProcessed && alreadyProcessed.completed) {
-        return { statusCode: 200, body: JSON.stringify({ status: "already_processed" }) };
+        return { 
+          statusCode: 200, 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "already_processed" }) 
+        };
       }
 
       await putFbData(`processed_orders/${txnId}`, { completed: true, timestamp: Date.now() });
@@ -178,12 +211,25 @@ exports.handler = async (event) => {
         referral_reward_credited: (amount >= 500 && userData.referred_by) ? true : Boolean(userData.referral_reward_credited)
       });
 
-      return { statusCode: 200, body: JSON.stringify({ status: "success", message: "Wallet updated successfully" }) };
+      return { 
+        statusCode: 200, 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "success", message: "Wallet updated successfully" }) 
+      };
     }
 
-    return { statusCode: 200, body: "Ignored or Pending" };
+    return { 
+      statusCode: 200, 
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "ignored", message: "Status not success or missing data" }) 
+    };
+
   } catch (err) {
     console.error("Callback Processing Error:", err);
-    return { statusCode: 500, body: err.message };
+    return { 
+      statusCode: 500, 
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: err.message }) 
+    };
   }
 };
