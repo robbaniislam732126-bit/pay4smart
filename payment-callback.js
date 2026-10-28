@@ -113,7 +113,7 @@ exports.handler = async (event) => {
 
     const txnId = orderId || utr;
 
-    // যদি রিকোয়েস্টে কোনো ডাটা না থাকে, তবে অটোমেটিক হোম পেজে রিডাইরেক্ট করে দেওয়া
+    // যদি রিকোয়েস্টে কোনো ডাটা না থাকে, তবে সরাসরি রেন্ডার ইউআরএল-এ রিডাইরেক্ট করে দেওয়া
     if ((event.httpMethod === "GET" || event.httpMethod === "HEAD") && Object.keys(payload).length === 0) {
       return {
         statusCode: 200,
@@ -126,10 +126,10 @@ exports.handler = async (event) => {
         </head>
         <body style="text-align:center;font-family:sans-serif;margin-top:100px;background:#f4f6f8;">
           <h2 style="color:#28a745;">Payment Successful!</h2>
-          <p>Redirecting to home page...</p>
+          <p>Redirecting...</p>
           <script>
             setTimeout(() => {
-              window.location.href = "https://pay4smart.netlify.app";
+              window.location.href = "https://pay4smart-2.onrender.com";
             }, 1000);
           </script>
         </body>
