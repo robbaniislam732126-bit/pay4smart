@@ -113,7 +113,7 @@ exports.handler = async (event) => {
 
     const txnId = orderId || utr;
 
-    // যদি রিকোয়েস্টে কোনো ডাটা না থাকে (খালি পেজ রিডাইরেক্ট), তবে বাটনসহ সুন্দর পেজ দেখানো
+    // যদি রিকোয়েস্টে কোনো ডাটা না থাকে, তবে অটোমেটিক হোম পেজে রিডাইরেক্ট করে দেওয়া
     if ((event.httpMethod === "GET" || event.httpMethod === "HEAD") && Object.keys(payload).length === 0) {
       return {
         statusCode: 200,
@@ -124,12 +124,14 @@ exports.handler = async (event) => {
           <title>Payment Status</title>
           <meta name="viewport" content="width=device-width, initial-scale=1">
         </head>
-        <body style="text-align:center;font-family:sans-serif;margin-top:80px;background:#f4f6f8;">
-          <div style="background:white;padding:30px;border-radius:10px;display:inline-block;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-            <h2 style="color:#28a745;margin-bottom:10px;">Payment Redirected Successfully!</h2>
-            <p style="color:#555;margin-bottom:20px;">Please check your Pay4Smart app wallet.</p>
-            <a href="app://pay4smart" style="background:#007bff;color:white;padding:12px 25px;text-decoration:none;border-radius:5px;font-weight:bold;display:inline-block;">Return to App</a>
-          </div>
+        <body style="text-align:center;font-family:sans-serif;margin-top:100px;background:#f4f6f8;">
+          <h2 style="color:#28a745;">Payment Successful!</h2>
+          <p>Redirecting to home page...</p>
+          <script>
+            setTimeout(() => {
+              window.location.href = "https://pay4smart.netlify.app";
+            }, 1000);
+          </script>
         </body>
         </html>`
       };
