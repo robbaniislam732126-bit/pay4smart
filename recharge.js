@@ -105,15 +105,6 @@ exports.handler = async (event) => {
       };
     }
 
-    const currentBalance = parseFloat(userData.balance || 0);
-    if (currentBalance < rechargeAmt) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ status: "FAILURE", message: "পর্যাপ্ত ওয়ালেট ব্যালেন্স নেই।" })
-      };
-    }
-
     const [firebaseSettings, margins] = await Promise.all([
       fetchFirebaseData("app_settings"),
       fetchFirebaseData("margins")
@@ -123,7 +114,10 @@ exports.handler = async (event) => {
     const callbackUrl = firebaseSettings.recharge_callback_url || "https://pay4smart.netlify.app/.netlify/functions/payment-callback";
     const apiOrderId = txn_id || ("ORD" + Date.now());
 
-    let template = firebaseSettings.recharge_api_url || "https://payicon.in/api/api_service/recharges?token={TOKEN}&provider_id={PROVIDER_ID}&number={NUMBER}&amount={AMOUNT}&api_order_id={ORDER_ID}&callback_url={CALLBACK_URL}";
+    // ফ্রেশ এক লাইনের ডিফল্ট ইউআরএল টেমপ্লেট
+    let template = (firebaseSettings.recharge_api_url && !firebaseSettings.recharge_api_url.includes("\n")) 
+      ? firebaseSettings.recharge_api_url.trim() 
+      : "https://payicon.in/api/api_service/recharges?token={TOKEN}&provider_id={PROVIDER_ID}&number={NUMBER}&amount={AMOUNT}&api_order_id={ORDER_ID}&callback_url={CALLBACK_URL}";
 
     const targetUrl = template
       .replace(/{TOKEN}/g, encodeURIComponent(token))
@@ -133,7 +127,7 @@ exports.handler = async (event) => {
       .replace(/{ORDER_ID}/g, encodeURIComponent(apiOrderId))
       .replace(/{CALLBACK_URL}/g, encodeURIComponent(callbackUrl));
 
-    // Webshare প্রক্সি (45.38.107.97) দিয়ে এপিআই কল পাঠানো
+    // Webshare প্রক্সি (45.38.107.97) দিয়ে এপিআই কল পাঠানো[span_0](start_span)[span_0](end_span)
     const response = await axios({
       method: "POST",
       url: targetUrl,
@@ -148,133 +142,18 @@ exports.handler = async (event) => {
     const responseText = typeof response.data === "string" ? response.data : JSON.stringify(response.data);
     const cleanText = responseText.trim();
 
-    let isSuccess = false;
-    let message = cleanText;
-    let operatorRef = "";
-
-    try {
-      const jsonRes = typeof response.data === "object" ? response.data : JSON.parse(cleanText);
-      const resStatus = (jsonRes.status || jsonRes.STATUS || "").toString().toUpperCase();
-
-      if (
-        resStatus === "SUCCESS" ||
-        resStatus === "PENDING" ||
-        resStatus === "1" ||
-        jsonRes.status === 1 ||
-        jsonRes.status === true
-      ) {
-        isSuccess = true;
-        message = jsonRes.message || jsonRes.msg || "Recharge Accepted Successfully";
-        operatorRef = jsonRes.order_id || jsonRes.operator_id || "";
-      } else {
-        message = jsonRes.remark || jsonRes.error_msg || jsonRes.message || jsonRes.msg || cleanText;
-      }
-    } catch (e) {
-      if (cleanText === "1" || cleanText.toLowerCase().includes("success")) {
-        isSuccess = true;
-        message = "Recharge Accepted Successfully";
-      }
-    }
-
-    if (isSuccess) {
-      let isFlat = false;
-      let marginRate = 0.5;
-      const sName = (service_name || "").toLowerCase();
-      const pCode = parseInt(provider_code);
-
-      // Mobile
-      if (pCode === 5 || sName.includes("airtel")) marginRate = parseFloat(margins.airtel) || 2.5;
-      else if (pCode === 6 || sName.includes("special")) marginRate = parseFloat(margins.bsnl_combo) || 5.0;
-      else if (pCode === 7 || sName.includes("topup")) marginRate = parseFloat(margins.bsnl_topup) || 5.0;
-      else if (pCode === 9 || (sName.includes("jio") && rechargeAmt <= 249)) marginRate = parseFloat(margins.jio_emergency) || 0.0;
-      else if (pCode === 8 || sName.includes("jio")) marginRate = parseFloat(margins.jio) || 1.4;
-      else if (pCode === 10 || sName.includes("vi")) marginRate = parseFloat(margins.vi) || 3.8;
-
-      // DTH
-      else if (pCode >= 11 && pCode <= 15) marginRate = 4.0;
-
-      // Postpaid
-      else if (pCode >= 16 && pCode <= 19) {
-        isFlat = true;
-        marginRate = 0.30;
-      }
-      else if (pCode === 21) marginRate = 4.2;
-
-      // Google Play
-      else if (pCode === 23) marginRate = 1.6;
-
-      // Electricity
-      else if (pCode >= 24 && pCode <= 28) {
-        isFlat = true;
-        marginRate = 1.00;
-      }
-
-      // FASTag
-      else if (pCode >= 29 && pCode <= 33) marginRate = 0.2;
-      else if (pCode >= 34 && pCode <= 35) marginRate = 0.5;
-
-      let commission = 0;
-      if (isFlat) {
-        commission = marginRate;
-      } else {
-        commission = parseFloat(((rechargeAmt * marginRate) / 100).toFixed(2));
-      }
-
-      const finalBalance = parseFloat((currentBalance - rechargeAmt + commission).toFixed(2));
-      const newTotalSale = parseFloat((userData.total_sale || 0) + rechargeAmt);
-      const newTotalProfit = parseFloat((userData.total_profit || 0) + commission);
-
-      const timeStr = "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      await updateFirebaseData(`users/${userPhone}`, {
-        balance: finalBalance,
-        total_sale: newTotalSale,
-        total_profit: newTotalProfit
-      });
-
-      await pushFirebaseHistory(`users/${userPhone}/history`, {
-        txnId: apiOrderId,
-        title: `${service_name || 'Service'} Payment`,
-        desc: `${number} • Success`,
-        amount: rechargeAmt,
-        type: "debit",
-        category: "recharge",
-        time: timeStr
-      });
-
-      if (commission > 0) {
-        await pushFirebaseHistory(`users/${userPhone}/history`, {
-          txnId: "COMM" + Date.now(),
-          title: "Commission Cashback",
-          desc: isFlat ? `₹${marginRate} Flat Cashback` : `${marginRate}% Margin Added`,
-          amount: commission,
-          type: "credit",
-          category: "ledger",
-          time: timeStr
-        });
-      }
-
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          status: "SUCCESS",
-          message: message,
-          operator_ref: operatorRef,
-          commission: commission,
-          new_balance: finalBalance
-        })
-      };
-    } else {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          status: "FAILURE",
-          message: message || "অপারেটর থেকে রিকোয়েস্ট সফল হয়নি।"
-        })
-      };
-    }
+    // ========================================================
+    // 🔴 TEST MODE: ব্যালেন্স না কেটে সরাসরি সার্ভার রেসপন্স প্রদর্শন[span_1](start_span)[span_1](end_span)
+    // ========================================================
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        status: "FAILURE", // যাতে ওয়ালেট থেকে টাকা না কাটে
+        message: "API RESPONSE: " + cleanText
+      })
+    };
+    // ========================================================
 
   } catch (error) {
     return {
