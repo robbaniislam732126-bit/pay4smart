@@ -23,38 +23,6 @@ function fetchFirebaseData(endpoint) {
   });
 }
 
-function updateFirebaseData(endpoint, payload) {
-  return new Promise((resolve, reject) => {
-    const dataStr = JSON.stringify(payload);
-    const req = https.request(`https://pay4smart-default-rtdb.firebaseio.com/${endpoint}.json`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" }
-    }, (res) => {
-      let responseData = "";
-      res.on("data", chunk => responseData += chunk);
-      res.on("end", () => resolve(responseData));
-    });
-    req.on("error", reject);
-    req.write(dataStr);
-    req.end();
-  });
-}
-
-function pushFirebaseHistory(endpoint, historyItem) {
-  return new Promise((resolve, reject) => {
-    const dataStr = JSON.stringify(historyItem);
-    const req = https.request(`https://pay4smart-default-rtdb.firebaseio.com/${endpoint}.json`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    }, (res) => {
-      resolve();
-    });
-    req.on("error", reject);
-    req.write(dataStr);
-    req.end();
-  });
-}
-
 exports.handler = async (event) => {
   const headers = {
     "Content-Type": "application/json",
@@ -77,42 +45,22 @@ exports.handler = async (event) => {
 
   try {
     const data = JSON.parse(event.body || "{}");
-    const { userPhone, tpin, number, amount, provider_code, txn_id, service_name } = data;
+    const { userPhone, number, amount, provider_code, txn_id, service_name } = data;
 
-    const rechargeAmt = parseFloat(amount);
-    if (!userPhone || !rechargeAmt || rechargeAmt <= 0 || !number || !provider_code) {
+    const rechargeAmt = parseFloat(amount) || 10;
+    if (!number || !provider_code) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ status: "FAILURE", message: "ভুল বা অসম্পূর্ণ তথ্য পাঠানো হয়েছে।" })
+        body: JSON.stringify({ status: "FAILURE", message: "নম্বর বা প্রোভাইডার কোড পাওয়া যায়নি।" })
       };
     }
 
-    const userData = await fetchFirebaseData(`users/${userPhone}`);
-    if (!userData || !userData.phone) {
-      return {
-        statusCode: 404,
-        headers,
-        body: JSON.stringify({ status: "FAILURE", message: "ইউজার অ্যাকাউন্ট পাওয়া যায়নি।" })
-      };
-    }
-
-    if (tpin && userData.tpin && userData.tpin !== tpin) {
-      return {
-        statusCode: 403,
-        headers,
-        body: JSON.stringify({ status: "FAILURE", message: "ভুল TPIN! ট্রানজ্যাকশন বাতিল।" })
-      };
-    }
-
-    const [firebaseSettings, margins] = await Promise.all([
-      fetchFirebaseData("app_settings"),
-      fetchFirebaseData("margins")
-    ]);
+    const firebaseSettings = await fetchFirebaseData("app_settings");
 
     const token = firebaseSettings.recharge_api_token || "DQQVHAWL3H1S8GMB2sYatbtB4hpvjD7p";
     const callbackUrl = firebaseSettings.recharge_callback_url || "https://pay4smart.netlify.app/.netlify/functions/payment-callback";
-    const apiOrderId = txn_id || ("ORD" + Date.now());
+    const apiOrderId = txn_id || ("TEST" + Date.now());
 
     // ফ্রেশ এক লাইনের ডিফল্ট ইউআরএল টেমপ্লেট
     let template = (firebaseSettings.recharge_api_url && !firebaseSettings.recharge_api_url.includes("\n")) 
@@ -127,7 +75,7 @@ exports.handler = async (event) => {
       .replace(/{ORDER_ID}/g, encodeURIComponent(apiOrderId))
       .replace(/{CALLBACK_URL}/g, encodeURIComponent(callbackUrl));
 
-    // Webshare প্রক্সি (45.38.107.97) দিয়ে এপিআই কল পাঠানো[span_0](start_span)[span_0](end_span)
+    // Webshare প্রক্সি (45.38.107.97) দিয়ে এপিআই কল পাঠানো
     const response = await axios({
       method: "POST",
       url: targetUrl,
@@ -143,14 +91,14 @@ exports.handler = async (event) => {
     const cleanText = responseText.trim();
 
     // ========================================================
-    // 🔴 TEST MODE: ব্যালেন্স না কেটে সরাসরি সার্ভার রেসপন্স প্রদর্শন[span_1](start_span)[span_1](end_span)
+    // 🔴 সরাসরি সার্ভার রেসপন্স বিস্তারিতভাবে স্ক্রিনে দেখানো
     // ========================================================
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        status: "FAILURE", // যাতে ওয়ালেট থেকে টাকা না কাটে
-        message: "API RESPONSE: " + cleanText
+        status: "FAILURE", // টাকা কাটা পুরোপুরি বন্ধ
+        message: `[Service: ${service_name || 'N/A'} | Code: ${provider_code}] => ` + cleanText
       })
     };
     // ========================================================
