@@ -33,15 +33,15 @@ const runHandler = (handler) => async (req, res) => {
   }
 };
 
-// ৬টি ব্যাকএন্ড ফাংশন লোড করা
-const createOrder = require("./netlify/functions/create-order").handler;
-const billHandler = require("./netlify/functions/bill").handler;
-const fetchPlans = require("./netlify/functions/fetch-plans").handler;
-const paymentCallback = require("./netlify/functions/payment-callback").handler;
-const recharge = require("./netlify/functions/recharge").handler;
-const sendOtp = require("./netlify/functions/send-otp").handler;
+// ব্যাকএন্ড ফাংশনগুলো সরাসরি রুট ফোল্ডার থেকে লোড করা (পাথ আপডেট করা হয়েছে)
+const createOrder = require("./create-order").handler;
+const billHandler = require("./bill").handler;
+const fetchPlans = require("./fetch-plans").handler;
+const paymentCallback = require("./payment-callback").handler;
+const recharge = require("./recharge").handler;
+const sendOtp = require("./send-otp").handler;
 
-// রুট ম্যাপিং (আগের এবং নতুন দুই রুটেই সাপোর্ট রাখা হলো)
+// রুট ম্যাপিং
 app.all("/.netlify/functions/create-order", runHandler(createOrder));
 app.all("/.netlify/functions/bill", runHandler(billHandler));
 app.all("/.netlify/functions/fetch-bill", runHandler(billHandler));
