@@ -135,7 +135,7 @@ exports.handler = async (event) => {
       .replace(/{ORDER_ID}/g, encodeURIComponent(apiOrderId))
       .replace(/{CALLBACK_URL}/g, encodeURIComponent(callbackUrl));
 
-    // প্রক্সি দিয়ে Payicon API-তে রিকোয়েস্ট পাঠানো
+    // Webshare প্রক্সি দিয়ে Payicon API-তে রিকোয়েস্ট পাঠানো
     const response = await axios({
       method: "POST",
       url: targetUrl,
@@ -177,6 +177,19 @@ exports.handler = async (event) => {
         message = "Recharge Accepted Successfully";
       }
     }
+
+    // ========================================================
+    // 🔴 কাস্টম এরর মেসেজ ফিল্টার (Super Admin Error বন্ধ করার জন্য)
+    // ========================================================
+    const lowerMsg = (message || "").toLowerCase();
+    if (
+      lowerMsg.includes("super admin") || 
+      lowerMsg.includes("operator code") || 
+      lowerMsg.includes("wrong provider")
+    ) {
+      message = "Please check your Operator or Mobile Number.";
+    }
+    // ========================================================
 
     // সফল হলে ব্যালেন্স ও কমিশন হিসাব
     if (isSuccess) {
@@ -229,14 +242,12 @@ exports.handler = async (event) => {
 
       const timeStr = "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-      // ১. ইউজারের ব্যালেন্স এবং মোট সেল আপডেট
       await updateFirebaseData(`users/${userPhone}`, {
         balance: finalBalance,
         total_sale: newTotalSale,
         total_profit: newTotalProfit
       });
 
-      // ২. রিচার্জ ডেবিট হিস্ট্রি যোগ
       await pushFirebaseHistory(`users/${userPhone}/history`, {
         txnId: apiOrderId,
         title: `${service_name || 'Service'} Payment`,
@@ -247,7 +258,6 @@ exports.handler = async (event) => {
         time: timeStr
       });
 
-      // ৩. কমিশন ক্রেডিট হিস্ট্রি যোগ
       if (commission > 0) {
         await pushFirebaseHistory(`users/${userPhone}/history`, {
           txnId: "COMM" + Date.now(),
@@ -272,7 +282,6 @@ exports.handler = async (event) => {
         })
       };
     } else {
-      // রিকোয়েস্ট ফেইল করলে কোনো ব্যালেন্স কাটবে না
       return {
         statusCode: 200,
         headers,
