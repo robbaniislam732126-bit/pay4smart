@@ -85,76 +85,14 @@ exports.handler = async (event) => {
       };
     }
 
-    const currentBalance = parseFloat(userData.balance || 0);
-    if (currentBalance < rechargeAmt) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ status: "FAILURE", message: "পর্যাপ্ত ওয়ালেট ব্যালেন্স নেই।" })
-      };
-    }
-
     const [fbSettings, margins] = await Promise.all([
       fetchFirebaseData("app_settings"),
       fetchFirebaseData("margins")
     ]);
 
-    // ==========================================
-    // 🛠️ ডেমো/টেস্ট মোড চেক (TEST MODE) 🛠️
-    // ==========================================
-    const isTestMode = fbSettings.test_mode === true || fbSettings.test_mode === "true";
-
-    if (isTestMode) {
-      console.log("========================================");
-      console.log(`[TEST MODE] Simulating Recharge...`);
-      console.log(`[TEST MODE] Service Name : ${service_name}`);
-      console.log(`[TEST MODE] Number       : ${number}`);
-      console.log(`[TEST MODE] Amount       : ₹${rechargeAmt}`);
-      console.log(`[TEST MODE] Provider Code: ${provider_code}`);
-      console.log(`[TEST MODE] User Phone   : ${userPhone}`);
-      console.log("========================================");
-      
-      // ফেক সাকসেস রেসপন্স তৈরি
-      const timeStr = "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      // কৃত্রিম কমিশন (টেস্টের জন্য)
-      const fakeCommission = parseFloat(((rechargeAmt * 1.5) / 100).toFixed(2)); 
-      const fakeFinalBalance = parseFloat((currentBalance - rechargeAmt + fakeCommission).toFixed(2));
-
-      // ফায়ারবেসে টেস্ট ট্রানজেকশন সেভ করা
-      await pushFirebaseHistory(`users/${userPhone}/history`, {
-        txnId: "TEST_" + Date.now(),
-        title: `[TEST] ${service_name || 'Service'} Payment`,
-        desc: `${number} • Test Success (Code: ${provider_code})`,
-        amount: rechargeAmt,
-        type: "debit",
-        category: "recharge",
-        time: timeStr
-      });
-
-      await updateFirebaseData(`users/${userPhone}`, { balance: fakeFinalBalance });
-
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          status: "SUCCESS",
-          message: `TEST MODE SUCCESS: Simulated ₹${rechargeAmt} recharge for ${number}. Code used: ${provider_code}`,
-          operator_ref: "TEST_REF_" + Date.now(),
-          commission: fakeCommission,
-          new_balance: fakeFinalBalance
-        })
-      };
-    }
-    // ==========================================
-    // 🛠️ ডেমো মোড শেষ (এরপর আসল API কল হবে) 🛠️
-    // ==========================================
-
     const token = fbSettings.recharge_api_token || "DQQVHAWL3H1S8GMB2sYatbtB4hpvjD7p";
     const callbackUrl = fbSettings.recharge_callback_url || `${fbSettings.app_host_url || "https://pay4smart.netlify.app"}/.netlify/functions/payment-callback`;
     const apiOrderId = txn_id || ("ORD" + Date.now());
-    const proxyUrl = fbSettings.proxy_url || "http://bdhgmqzy:hbo9peyy3r88@45.38.107.97:6014";
-    const httpsAgent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : null;
 
     let template = (fbSettings.recharge_api_url && !fbSettings.recharge_api_url.includes("\n")) 
       ? fbSettings.recharge_api_url.trim() 
@@ -168,60 +106,20 @@ exports.handler = async (event) => {
       .replace(/{ORDER_ID}/g, encodeURIComponent(apiOrderId))
       .replace(/{CALLBACK_URL}/g, encodeURIComponent(callbackUrl));
 
-    console.log(`[RECHARGE API HIT] URL: ${targetUrl}`);
+    // === টেস্ট মোড লগ: কনসোল ও রেন্ডার লগে প্রোভাইডার কোড ও সম্পূর্ণ ইউআরএল দেখাবে ===
+    console.log("==========================================");
+    console.log("[TEST MODE] Recharge Request Intercepted");
+    console.log(`[TEST MODE] Service Name: ${service_name}`);
+    console.log(`[TEST MODE] Target Number: ${number}`);
+    console.log(`[TEST MODE] Amount: ₹${rechargeAmt}`);
+    console.log(`[TEST MODE] Provider Code (ID): ${provider_code}`);
+    console.log(`[TEST MODE] Generated API URL: ${targetUrl}`);
+    console.log("==========================================");
 
-    let response;
-    try {
-      response = await axios({
-        method: "POST",
-        url: targetUrl,
-        headers: { "Accept": "*/*", "User-Agent": "Mozilla/5.0" },
-        httpsAgent: httpsAgent,
-        proxy: false,
-        timeout: 10000
-      });
-    } catch (e) {
-      response = await axios({
-        method: "POST",
-        url: targetUrl,
-        headers: { "Accept": "*/*", "User-Agent": "Mozilla/5.0" },
-        timeout: 10000
-      });
-    }
-
-    const responseText = typeof response.data === "string" ? response.data : JSON.stringify(response.data);
-    console.log(`[RECHARGE API RESPONSE] ${responseText}`);
-
-    const cleanText = responseText.trim();
-
-    let isSuccess = false;
-    let message = cleanText;
-    let operatorRef = "";
-
-    try {
-      const jsonRes = typeof response.data === "object" ? response.data : JSON.parse(cleanText);
-      const resStatus = (jsonRes.status || jsonRes.STATUS || "").toString().toUpperCase();
-
-      if (
-        resStatus === "SUCCESS" || resStatus === "PENDING" || resStatus === "1" || jsonRes.status === 1 || jsonRes.status === true
-      ) {
-        isSuccess = true;
-        message = jsonRes.message || jsonRes.msg || "Recharge Accepted Successfully";
-        operatorRef = jsonRes.order_id || jsonRes.operator_id || "";
-      } else {
-        message = jsonRes.error_msg || jsonRes.remark || jsonRes.message || cleanText;
-      }
-    } catch (e) {
-      if (cleanText === "1" || cleanText.toLowerCase().includes("success")) {
-        isSuccess = true;
-        message = "Recharge Accepted Successfully";
-      }
-    }
-
-    const lowerMsg = (message || "").toLowerCase();
-    if (lowerMsg.includes("super admin") || lowerMsg.includes("operator code") || lowerMsg.includes("wrong provider")) {
-      message = "Please check your Operator or Mobile Number.";
-    }
+    // যেহেতু এটি টেস্ট মোড, তাই এপিআই-তে রিয়েল হিট না করে সরাসরি কানেকশন ঠিক আছে ধরে সাকসেস রিটার্ন করা হচ্ছে
+    let isSuccess = true;
+    let message = `সঠিক আছে (Success)! প্রোভাইডার কোড [${provider_code}] দিয়ে রিকোয়েস্ট প্রস্তুত।`;
+    let operatorRef = "TEST_REF_" + Date.now();
 
     if (isSuccess) {
       let isFlat = false;
@@ -245,39 +143,6 @@ exports.handler = async (event) => {
       else if (pCode >= 34 && pCode <= 38) marginRate = parseFloat(margins.fastag_bob) || 0.5;
 
       const commission = isFlat ? marginRate : parseFloat(((rechargeAmt * marginRate) / 100).toFixed(2));
-      const finalBalance = parseFloat((currentBalance - rechargeAmt + commission).toFixed(2));
-      const newTotalSale = parseFloat((userData.total_sale || 0) + rechargeAmt);
-      const newTotalProfit = parseFloat((userData.total_profit || 0) + commission);
-
-      const timeStr = "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      await updateFirebaseData(`users/${userPhone}`, {
-        balance: finalBalance,
-        total_sale: newTotalSale,
-        total_profit: newTotalProfit
-      });
-
-      await pushFirebaseHistory(`users/${userPhone}/history`, {
-        txnId: apiOrderId,
-        title: `${service_name || 'Service'} Payment`,
-        desc: `${number} • Success`,
-        amount: rechargeAmt,
-        type: "debit",
-        category: "recharge",
-        time: timeStr
-      });
-
-      if (commission > 0) {
-        await pushFirebaseHistory(`users/${userPhone}/history`, {
-          txnId: "COMM" + Date.now(),
-          title: "Commission Cashback",
-          desc: isFlat ? `₹${marginRate} Flat Cashback` : `${marginRate}% Margin Added`,
-          amount: commission,
-          type: "credit",
-          category: "ledger",
-          time: timeStr
-        });
-      }
 
       return {
         statusCode: 200,
@@ -287,19 +152,19 @@ exports.handler = async (event) => {
           message: message,
           operator_ref: operatorRef,
           commission: commission,
-          new_balance: finalBalance
+          new_balance: parseFloat(userData.balance || 0) // টেস্ট মোডে ব্যালেন্স কাটা হবে না
         })
       };
     } else {
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ status: "FAILURE", message: message || "অপারেটর থেকে রিকোয়েস্ট সফল হয়নি।" })
+        body: JSON.stringify({ status: "FAILURE", message: "টেস্ট মোড ফেইলড।" })
       };
     }
 
   } catch (error) {
-    console.error("[RECHARGE ERROR]", error.message);
+    console.error("[RECHARGE TEST ERROR]", error.message);
     return {
       statusCode: 500,
       headers,
