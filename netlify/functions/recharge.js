@@ -99,6 +99,57 @@ exports.handler = async (event) => {
       fetchFirebaseData("margins")
     ]);
 
+    // ==========================================
+    // 🛠️ ডেমো/টেস্ট মোড চেক (TEST MODE) 🛠️
+    // ==========================================
+    const isTestMode = fbSettings.test_mode === true || fbSettings.test_mode === "true";
+
+    if (isTestMode) {
+      console.log("========================================");
+      console.log(`[TEST MODE] Simulating Recharge...`);
+      console.log(`[TEST MODE] Service Name : ${service_name}`);
+      console.log(`[TEST MODE] Number       : ${number}`);
+      console.log(`[TEST MODE] Amount       : ₹${rechargeAmt}`);
+      console.log(`[TEST MODE] Provider Code: ${provider_code}`);
+      console.log(`[TEST MODE] User Phone   : ${userPhone}`);
+      console.log("========================================");
+      
+      // ফেক সাকসেস রেসপন্স তৈরি
+      const timeStr = "Today, " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      // কৃত্রিম কমিশন (টেস্টের জন্য)
+      const fakeCommission = parseFloat(((rechargeAmt * 1.5) / 100).toFixed(2)); 
+      const fakeFinalBalance = parseFloat((currentBalance - rechargeAmt + fakeCommission).toFixed(2));
+
+      // ফায়ারবেসে টেস্ট ট্রানজেকশন সেভ করা
+      await pushFirebaseHistory(`users/${userPhone}/history`, {
+        txnId: "TEST_" + Date.now(),
+        title: `[TEST] ${service_name || 'Service'} Payment`,
+        desc: `${number} • Test Success (Code: ${provider_code})`,
+        amount: rechargeAmt,
+        type: "debit",
+        category: "recharge",
+        time: timeStr
+      });
+
+      await updateFirebaseData(`users/${userPhone}`, { balance: fakeFinalBalance });
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          status: "SUCCESS",
+          message: `TEST MODE SUCCESS: Simulated ₹${rechargeAmt} recharge for ${number}. Code used: ${provider_code}`,
+          operator_ref: "TEST_REF_" + Date.now(),
+          commission: fakeCommission,
+          new_balance: fakeFinalBalance
+        })
+      };
+    }
+    // ==========================================
+    // 🛠️ ডেমো মোড শেষ (এরপর আসল API কল হবে) 🛠️
+    // ==========================================
+
     const token = fbSettings.recharge_api_token || "DQQVHAWL3H1S8GMB2sYatbtB4hpvjD7p";
     const callbackUrl = fbSettings.recharge_callback_url || `${fbSettings.app_host_url || "https://pay4smart.netlify.app"}/.netlify/functions/payment-callback`;
     const apiOrderId = txn_id || ("ORD" + Date.now());
@@ -117,7 +168,6 @@ exports.handler = async (event) => {
       .replace(/{ORDER_ID}/g, encodeURIComponent(apiOrderId))
       .replace(/{CALLBACK_URL}/g, encodeURIComponent(callbackUrl));
 
-    // === লগ ১: API-তে রিকোয়েস্ট পাঠানোর আগে ===
     console.log(`[RECHARGE API HIT] URL: ${targetUrl}`);
 
     let response;
@@ -140,8 +190,6 @@ exports.handler = async (event) => {
     }
 
     const responseText = typeof response.data === "string" ? response.data : JSON.stringify(response.data);
-    
-    // === লগ ২: API থেকে রেসপন্স আসার পর ===
     console.log(`[RECHARGE API RESPONSE] ${responseText}`);
 
     const cleanText = responseText.trim();
