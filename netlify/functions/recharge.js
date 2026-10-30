@@ -117,6 +117,9 @@ exports.handler = async (event) => {
       .replace(/{ORDER_ID}/g, encodeURIComponent(apiOrderId))
       .replace(/{CALLBACK_URL}/g, encodeURIComponent(callbackUrl));
 
+    // === লগ ১: API-তে রিকোয়েস্ট পাঠানোর আগে ===
+    console.log(`[RECHARGE API HIT] URL: ${targetUrl}`);
+
     let response;
     try {
       response = await axios({
@@ -137,6 +140,10 @@ exports.handler = async (event) => {
     }
 
     const responseText = typeof response.data === "string" ? response.data : JSON.stringify(response.data);
+    
+    // === লগ ২: API থেকে রেসপন্স আসার পর ===
+    console.log(`[RECHARGE API RESPONSE] ${responseText}`);
+
     const cleanText = responseText.trim();
 
     let isSuccess = false;
@@ -244,6 +251,7 @@ exports.handler = async (event) => {
     }
 
   } catch (error) {
+    console.error("[RECHARGE ERROR]", error.message);
     return {
       statusCode: 500,
       headers,
