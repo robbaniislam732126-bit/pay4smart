@@ -33,6 +33,7 @@ exports.handler = async (event) => {
       return { statusCode: 400, headers, body: JSON.stringify({ error: "Phone number and OTP are required" }) };
     }
 
+    // ৩০ সেকেন্ড কুলডাউন চেক
     const now = Date.now();
     if (otpCooldown[phone] && (now - otpCooldown[phone]) < 30000) {
       return {
@@ -55,13 +56,10 @@ exports.handler = async (event) => {
     const response = await fetch(finalUrl, { method: "GET" });
     const resultText = await response.text();
 
-    let resultJson = {};
-    try { resultJson = JSON.parse(resultText); } catch(e) { resultJson = { raw: resultText }; }
-
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ status: "SUCCESS", gateway_response: resultJson })
+      body: JSON.stringify({ status: "SUCCESS", gateway_response: resultText })
     };
 
   } catch (error) {
