@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+  <title>Pay4Smart - Customer Support</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --primary-purple: #5c1bb7;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --whatsapp-green: #00a884;
+      --chat-bg: #efeae2;
+      --bubble-user: #d9fdd3;
+      --bubble-user-text: #111b21;
+      --bubble-admin: #ffffff;
+      --bubble-admin-text: #111b21;
+      --bubble-bot: #e0e7ff;
+      --bubble-bot-text: #312e81;
+      --chat-header-bg: #00a884;
+      --chat-input-bg: #f0f2f5;
+      --chat-input-field-bg: #ffffff;
+      --chat-input-text: #111b21;
+    }
+
+    body.dark-mode {
+      --bg-color: #0b0f19;
+      --card-bg: #151d30;
+      --primary-purple: #8b5cf6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #232f48;
+      --chat-bg: #0b141a;
+      --bubble-user: #005c4b;
+      --bubble-user-text: #e9edef;
+      --bubble-admin: #202c33;
+      --bubble-admin-text: #e9edef;
+      --bubble-bot: #312e81;
+      --bubble-bot-text: #e0e7ff;
+      --chat-header-bg: #202c33;
+      --chat-input-bg: #111b21;
+      --chat-input-field-bg: #2a3942;
+      --chat-input-text: #e9edef;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .support-wrapper {
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      max-height: 100vh;
+      background: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-bar {
+      background: var(--primary-purple);
+      color: #fff;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .header-left-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .circle-back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    /* DARK MODE TOGGLE SWITCH */
+    .theme-switch-box {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .theme-switch-box input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .theme-slider-round {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255,255,255,0.3);
+      transition: .3s;
+      border-radius: 34px;
+    }
+    .theme-slider-round:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    input:checked + .theme-slider-round {
+      background-color: #ffffff;
+    }
+    input:checked + .theme-slider-round:before {
+      transform: translateX(20px);
+      background-color: var(--primary-purple);
+    }
+
+    .view-screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    .view-screen.active {
+      display: flex;
+    }
+
+    /* VIEW 1: HERO SCREEN */
+    #supportHeroView {
+      overflow-y: auto;
+      background: var(--bg-color);
+    }
+
+    .hero-top-banner {
+      background: linear-gradient(180deg, var(--primary-purple) 0%, rgba(92,27,183,0.85) 100%);
+      padding: 20px 20px 50px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .hero-agent-icon-box {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      position: relative;
+      color: var(--primary-purple);
+      font-size: 3.5rem;
+    }
+
+    .hero-card-box {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 22px 18px;
+      margin: -30px 16px 20px;
+      color: var(--text-main);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      position: relative;
+      z-index: 2;
+      border: 1px solid var(--border-color);
+    }
+
+    .big-purple-pill-btn {
+      width: 100%;
+      background: var(--primary-purple);
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: 35px;
+      font-size: 1.02rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(92, 27, 183, 0.4);
+      margin-top: 16px;
+    }
+
+    /* VIEW 2: CHAT MESSENGER SCREEN */
+    #supportChatMessengerView {
+      background: var(--chat-bg);
+    }
+
+    .chat-status-bar {
+      padding: 10px 14px;
+      background: var(--chat-header-bg);
+      color: #fff;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .chat-bg-pattern {
+      background-color: var(--chat-bg) !important;
+      background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 0);
+      background-size: 16px 16px;
+    }
+    body.dark-mode .chat-bg-pattern {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+    }
+
+    .chat-bubble-row {
+      display: flex;
+      width: 100%;
+      margin-bottom: 6px;
+    }
+    .chat-bubble-row.user-row { justify-content: flex-end; }
+    .chat-bubble-row.admin-row { justify-content: flex-start; }
+
+    .chat-bubble {
+      max-width: 82%;
+      padding: 8px 12px;
+      position: relative;
+      font-size: 15px;
+      line-height: 1.38;
+      word-wrap: break-word;
+      box-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.15);
+    }
+    .chat-bubble.user-bubble {
+      background: var(--bubble-user);
+      color: var(--bubble-user-text);
+      border-radius: 8px 8px 0px 8px;
+    }
+    .chat-bubble.admin-bubble {
+      background: var(--bubble-admin);
+      color: var(--bubble-admin-text);
+      border-radius: 8px 8px 8px 0px;
+    }
+    .chat-bubble.bot-bubble {
+      background: var(--bubble-bot);
+      color: var(--bubble-bot-text);
+      border-radius: 8px;
+      align-self: center;
+      border: 1px dashed #6366f1;
+    }
+
+    .chat-bubble-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      float: right;
+      margin-left: 10px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .chat-input-bar-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--chat-input-bg);
+      border-top: 1px solid var(--border-color);
+      flex-shrink: 0;
+      width: 100%;
+      box-sizing: border-box;
+      z-index: 100;
+    }
+
+    .chat-input-field {
+      flex: 1;
+      background: var(--chat-input-field-bg);
+      color: var(--chat-input-text);
+      border: 1px solid var(--border-color);
+      outline: none;
+      border-radius: 24px;
+      padding: 11px 16px;
+      font-size: 16px !important;
+    }
+    .chat-input-field::placeholder { color: var(--text-muted); }
+
+    .chat-send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--whatsapp-green);
+      color: #ffffff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="support-wrapper">
+    
+    <!-- VIEW 1: HERO SCREEN -->
+    <div id="supportHeroView" class="view-screen active">
+      <div class="header-bar">
+        <div class="header-left-wrap">
+          <button type="button" class="circle-back-btn" onclick="window.location.href='index.html'"><i class="fa-solid fa-chevron-left"></i></button>
+          <h2 style="font-size: 1.15rem; font-weight: 800;">Customer Support</h2>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size: 0.72rem; padding: 3px 10px; border-radius: 12px; background: rgba(16, 185, 129, 0.25); color: #34d399; font-weight: 700;" id="heroOnlineBadge">● Online</span>
+          <label class="theme-switch-box" title="Toggle Dark/Light Mode">
+            <input type="checkbox" id="themeToggleHero" onchange="toggleThemeGlobal(this.checked)" />
+            <span class="theme-slider-round"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="hero-top-banner">
+        <div class="hero-agent-icon-box">
+          <i class="fa-solid fa-headset"></i>
+          <span id="heroAgentDot" style="position:absolute; bottom:6px; right:6px; width:18px; height:18px; border-radius:50%; background:#10b981; border:3px solid #fff;"></span>
+        </div>
+      </div>
+
+      <div class="hero-card-box">
+        <h3 style="font-size: 1.15rem; font-weight: 900; margin-bottom: 4px;">Having a problem?</h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px;">
+          No worries! Our team is here to assist for you.
+        </p>
+
+        <div style="font-size: 0.82rem; color: var(--text-main); line-height: 1.6; font-weight: 600; text-align: left; margin-bottom: 22px;">
+          <p style="margin-bottom: 8px;">1. Click on the <strong>"Talk with us"</strong> button or the message badge at the bottom-right corner.</p>
+          <p style="margin-bottom: 8px;">2. Please send us a message explaining your query or issue.</p>
+          <p>3. Our team will resolve your issues as early as possible.</p>
+        </div>
+
+        <button type="button" class="big-purple-pill-btn" onclick="openChatMessengerView()">
+          <span>Talk with Us</span> <i class="fa-solid fa-chevron-right" style="font-size:0.8rem;"></i>
+        </button>
+      </div>
+
+      <!-- FLOATING CHAT BUBBLE BUTTON -->
+      <button type="button" onclick="openChatMessengerView()" style="position: fixed; bottom: 20px; right: 20px; width: 54px; height: 54px; border-radius: 50%; background: var(--primary-purple); color: #fff; border: 3px solid #fff; box-shadow: 0 6px 20px rgba(92,27,183,0.45); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; cursor: pointer; z-index: 10;">
+        <i class="fa-solid fa-comment-dots"></i>
+      </button>
+    </div>
+
+    <!-- VIEW 2: CHAT MESSENGER SCREEN -->
+    <div id="supportChatMessengerView" class="view-screen">
+      <div class="chat-status-bar">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--primary-purple); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+            <i class="fa-solid fa-headset"></i>
+          </div>
+          <div>
+            <h4 style="font-size: 0.98rem; font-weight: 800; color: #fff; line-height: 1.2;">Pay4Smart Helpdesk</h4>
+            <p id="chatLiveAdminStatusSubtitle" style="font-size: 0.72rem; color: #34d399;">● Live Agent Online</p>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <label class="theme-switch-box" title="Toggle Dark/Light Mode">
+            <input type="checkbox" id="themeToggleChat" onchange="toggleThemeGlobal(this.checked)" />
+            <span class="theme-slider-round"></span>
+          </label>
+          <button type="button" onclick="backToSupportHeroView()" class="circle-back-btn" style="width: 32px; height: 32px; font-size: 0.85rem;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+
+      <div id="liveChatMessagesContainer" class="chat-bg-pattern" style="flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; -webkit-overflow-scrolling: touch;">
+        <!-- Dynamic Messages -->
+      </div>
+
+      <div class="chat-input-bar-container">
+        <input type="text" id="liveUserChatInput" class="chat-input-field" placeholder="Type your message here..." onkeypress="if(event.key === 'Enter') { event.preventDefault(); sendUserChatMessage(); }" autocomplete="off" />
+        <button type="button" class="chat-send-btn" onclick="sendUserChatMessage()">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const DEFAULT_DB_URL = "https://pay4smart-default-rtdb.firebaseio.com/";
+    const activeFirebaseDbUrl = localStorage.getItem('custom_firebase_db_url') || DEFAULT_DB_URL;
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp({ databaseURL: activeFirebaseDbUrl });
+    }
+    const db = firebase.database();
+
+    let customerPhone = localStorage.getItem('pay4smart_customer_phone');
+    if (!customerPhone) {
+      customerPhone = "Guest_" + Math.floor(100000 + Math.random() * 900000);
+      localStorage.setItem('pay4smart_customer_phone', customerPhone);
+    }
+    let customerName = localStorage.getItem('pay4smart_customer_name') || "Valued Customer";
+
+    let messagesListener = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      listenLiveAdminStatus();
+      startTenMinutesChatPurgeInterval();
+
+      // Default to Light/White mode on initial load
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('pay4smart_dark_mode', 'false');
+      const t1 = document.getElementById('themeToggleHero');
+      const t2 = document.getElementById('themeToggleChat');
+      if (t1) t1.checked = false;
+      if (t2) t2.checked = false;
+    });
+
+    function toggleThemeGlobal(isChecked) {
+      if (isChecked) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('pay4smart_dark_mode', 'true');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('pay4smart_dark_mode', 'false');
+      }
+      const t1 = document.getElementById('themeToggleHero');
+      const t2 = document.getElementById('themeToggleChat');
+      if (t1) t1.checked = isChecked;
+      if (t2) t2.checked = isChecked;
+    }
+
+    function openChatMessengerView() {
+      document.getElementById('supportHeroView').classList.remove('active');
+      document.getElementById('supportChatMessengerView').classList.add('active');
+      listenUserChatMessages();
+      setTimeout(() => {
+        const inp = document.getElementById('liveUserChatInput');
+        if (inp) inp.focus();
+      }, 100);
+    }
+
+    function backToSupportHeroView() {
+      document.getElementById('supportHeroView').classList.add('active');
+      document.getElementById('supportChatMessengerView').classList.remove('active');
+    }
+
+    function listenLiveAdminStatus() {
+      db.ref('app_settings/admin_online_status').on('value', snap => {
+        const isOnline = snap.val() === true;
+        const badge = document.getElementById('heroOnlineBadge');
+        const sub = document.getElementById('chatLiveAdminStatusSubtitle');
+        const dot = document.getElementById('heroAgentDot');
+
+        if (isOnline) {
+          if (badge) { badge.innerText = '● Online'; badge.style.background = 'rgba(16,185,129,0.25)'; badge.style.color = '#34d399'; }
+          if (dot) dot.style.background = '#10b981';
+          if (sub) { sub.innerText = '● Live Agent Online'; sub.style.color = '#34d399'; }
+        } else {
+          if (badge) { badge.innerText = '● Offline'; badge.style.background = 'rgba(239,68,68,0.25)'; badge.style.color = '#f87171'; }
+          if (dot) dot.style.background = '#94a3b8';
+          if (sub) { sub.innerText = '● AI Assistant Active'; sub.style.color = '#a78bfa'; }
+        }
+      });
+    }
+
+    // 10 minutes auto-purge interval from Firebase
+    function startTenMinutesChatPurgeInterval() {
+      setInterval(() => {
+        const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+        db.ref('support_chats').once('value', snapshot => {
+          if (!snapshot.exists()) return;
+          snapshot.forEach(childSnap => {
+            const phone = childSnap.key;
+            const chatData = childSnap.val();
+            if (chatData.last_timestamp && chatData.last_timestamp < tenMinutesAgo) {
+              db.ref(`support_chats/${phone}`).remove().catch(() => {});
+            }
+          });
+        });
+      }, 30 * 1000);
+    }
+
+    const servicesData = {
+      "1": {
+        name: "Mobile Recharge",
+        questions: {
+          "1a": { q: "Recharge failed but money deducted?", a: "If your recharge fails or money is deducted, it is automatically refunded to your wallet within 24 hours. Please check your transaction history." },
+          "1b": { q: "Recharge status pending or stuck?", a: "Pending recharges are automatically processed or refunded by the operator within 1 to 2 hours." }
+        }
+      },
+      "2": {
+        name: "DTH Recharge",
+        questions: {
+          "2a": { q: "DTH recharge not updated on TV?", a: "Please keep your set-top box turned on for 10-15 minutes. If not updated, contact WhatsApp support with your subscriber ID." }
+        }
+      },
+      "3": {
+        name: "Add Money / Wallet Deposit",
+        questions: {
+          "3a": { q: "How to add money to wallet?", a: "Click on the '+ Add' button on the home page, select UPI or QR code, and complete the payment instantly." },
+          "3b": { q: "Money not added after UTR payment?", a: "Submit your UTR / Transaction reference number in the Manual QR section. It will be verified and credited within 30 minutes." }
+        }
+      },
+      "4": {
+        name: "PAN Card Services",
+        questions: {
+          "4a": { q: "How to apply for a new PAN card?", a: "Go to the PAN Card section on the home page. The application fee is 107 INR and it is NSDL certified." },
+          "4b": { q: "PAN card correction procedure?", a: "Select PAN Correction in the PAN section, update your details, and submit documents with the 107 INR fee." }
+        }
+      },
+      "5": {
+        name: "Electricity Bill Payment",
+        questions: {
+          "5a": { q: "Electricity bill payment pending?", a: "Bill payments take up to 24-48 hours to reflect in the electricity board database." }
+        }
+      },
+      "6": {
+        name: "UPI Transfer",
+        questions: {
+          "6a": { q: "UPI transfer failed or stuck?", a: "Failed UPI transfers are refunded instantly or within 3-5 business days by banking partners." }
+        }
+      },
+      "7": {
+        name: "QR Code Pay",
+        questions: {
+          "7a": { q: "QR code scanning error?", a: "Ensure you have a stable internet connection and camera permissions enabled." }
+        }
+      },
+      "8": {
+        name: "Cashback & Commission (Margin)",
+        questions: {
+          "8a": { q: "Where to check my commission margin?", a: "Go to the Margin option in the menu to view cashback and commission rates for each service." }
+        }
+      },
+      "9": {
+        name: "Transaction History",
+        questions: {
+          "9a": { q: "How to view old transactions?", a: "Tap on 'History' from the bottom navigation or profile menu to view all past recharges and payments." }
+        }
+      },
+      "10": {
+        name: "TPIN Reset & Security",
+        questions: {
+          "10a": { q: "How to reset TPIN?", a: "Go to Settings, click on 'Reset TPIN', verify via OTP sent to your registered mobile number, and set a new TPIN." }
+        }
+      },
+      "11": {
+        name: "Bank Withdrawal",
+        questions: {
+          "11a": { q: "How to withdraw wallet balance to bank?", a: "Go to Wallet -> Withdraw, enter your bank account or UPI ID, and request transfer." }
+        }
+      },
+      "12": {
+        name: "Notification & Alerts",
+        questions: {
+          "12a": { q: "Not receiving notification alerts?", a: "Check your phone notification settings and ensure app permissions are enabled." }
+        }
+      },
+      "13": {
+        name: "Profile & KYC Update",
+        questions: {
+          "13a": { q: "How to update KYC or profile details?", a: "Go to Profile settings to update your name, email, and submit KYC documents." }
+        }
+      },
+      "14": {
+        name: "WhatsApp Support Contact",
+        questions: {
+          "14a": { q: "How to contact official WhatsApp support?", a: "For direct assistance, message us on WhatsApp at +91 7994946784." }
+        }
+      }
+    };
+
+    function renderSingleChatMessageHtml(m) {
+      const isAdmin = (m.sender === 'admin');
+      const isBot = (m.sender === 'bot');
+      const rowClass = isAdmin ? 'chat-bubble-row admin-row' : (isBot ? 'chat-bubble-row' : 'chat-bubble-row user-row');
+      const bubbleClass = isAdmin ? 'chat-bubble admin-bubble' : (isBot ? 'chat-bubble bot-bubble' : 'chat-bubble user-bubble');
+      const timeStr = m.time || '';
+      const tickHtml = (isAdmin || isBot) ? '' : '<i class="fa-solid fa-check-double" style="color: #53bdeb; font-size: 11px; margin-left: 3px;"></i>';
+
+      const safeText = (m.text || '')
+        .replace(/&/g, "&amp;")
+        .replace(/[<]/g, "&lt;")
+        .replace(/[>]/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+      return `
+        <div class="${rowClass}" ${isBot ? 'style="justify-content:center;"' : ''}>
+          <div class="${bubbleClass}">
+            <span class="chat-bubble-text">${safeText}</span>
+            <span class="chat-bubble-meta">
+              ${timeStr} ${tickHtml}
+            </span>
+          </div>
+        </div>
+      `;
+    }
+
+    function listenUserChatMessages() {
+      const body = document.getElementById('liveChatMessagesContainer');
+      if (!body) return;
+
+      if (messagesListener) messagesListener.off();
+
+      messagesListener = db.ref(`support_chats/${customerPhone}/messages`);
+      messagesListener.on('value', snap => {
+        if (!snap.exists()) {
+          body.innerHTML = `
+            <div style="text-align:center; padding:30px 15px; color:var(--text-muted);">
+              <p style="font-size:0.78rem;">Send a message to start conversation with support.</p>
+            </div>`;
+          return;
+        }
+
+        const msgs = snap.val();
+        let html = '';
+        Object.keys(msgs).forEach(k => {
+          html += renderSingleChatMessageHtml(msgs[k]);
+        });
+        body.innerHTML = html;
+        setTimeout(() => {
+          body.scrollTop = body.scrollHeight;
+        }, 50);
+      });
+    }
+
+    async function sendUserChatMessage() {
+      const input = document.getElementById('liveUserChatInput');
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      input.focus(); // Keep focus so mobile keyboard stays open!
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
+
+      const msgObj = {
+        sender: 'user',
+        text: text,
+        time: timeStr,
+        timestamp: Date.now()
+      };
+
+      await db.ref(`support_chats/${customerPhone}/messages`).push(msgObj);
+      await db.ref(`support_chats/${customerPhone}`).update({
+        user_name: customerName,
+        user_phone: customerPhone,
+        last_message: text,
+        last_time: timeStr,
+        last_timestamp: Date.now(),
+        unread_admin: true,
+        unread_user: false
+      });
+
+      // AI auto-reply if admin is offline
+      db.ref('app_settings/admin_online_status').once('value', adminSnap => {
+        const isAdminOnline = adminSnap.val() === true;
+        if (!isAdminOnline) {
+          const t = text.toLowerCase();
+          let replyText = "";
+          let matched = findServiceAnswer(t);
+
+          if (matched) {
+            replyText = matched + "\n\nFor further assistance, please contact WhatsApp Support: +91 7994946784";
+          } else {
+            replyText = `Hello ${customerName}! Welcome to Pay4Smart Support. Please choose from our 14 services below by replying with the corresponding number or service name:\n\n`;
+            Object.keys(servicesData).forEach(key => {
+              replyText += `${key}. ${servicesData[key].name}\n`;
+            });
+            replyText += `\nType the service number or question to get instant solutions.`;
+          }
+
+          setTimeout(async () => {
+            const botMsg = {
+              sender: 'bot',
+              sender_label: 'AI Assistant',
+              text: replyText,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase(),
+              timestamp: Date.now()
+            };
+            await db.ref(`support_chats/${customerPhone}/messages`).push(botMsg);
+            await db.ref(`support_chats/${customerPhone}`).update({
+              last_message: "AI: " + text,
+              last_time: botMsg.time,
+              last_timestamp: Date.now(),
+              unread_admin: true
+            });
+          }, 600);
+        }
+      });
+    }
+
+    function findServiceAnswer(input) {
+      input = input.trim();
+      if (servicesData[input]) {
+        let s = servicesData[input];
+        let res = `**${s.name} Questions:**\n`;
+        let qKeys = Object.keys(s.questions);
+        qKeys.forEach((qk, idx) => {
+          res += `${idx + 1}. ${s.questions[qk].q}\n   Ans: ${s.questions[qk].a}\n`;
+        });
+        return res;
+      }
+
+      for (let sKey in servicesData) {
+        let s = servicesData[sKey];
+        if (input.toLowerCase().includes(s.name.toLowerCase())) {
+          let res = `**${s.name} Solutions:**\n`;
+          let qKeys = Object.keys(s.questions);
+          qKeys.forEach((qk, idx) => {
+            res += `${idx + 1}. ${s.questions[qk].q}\n   Ans: ${s.questions[qk].a}\n`;
+          });
+          return res;
+        }
+        for (let qKey in s.questions) {
+          let item = s.questions[qKey];
+          if (input.toLowerCase().includes(item.q.toLowerCase()) || input === qKey) {
+            return item.a;
+          }
+        }
+      }
+      return null;
+    }
+  </script>
+</body>
+</html>
