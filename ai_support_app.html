@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pay4Smart - AI & Live Support Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #151d30;
+      --primary-purple: #5c1bb7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #232f48;
+      --whatsapp-green: #25d366;
+      --danger-red: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .support-app-wrapper {
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      max-height: 100vh;
+      background: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+    }
+
+    .app-header {
+      background: var(--primary-purple);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+
+    .header-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .view-screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      background: #070a12;
+    }
+    .view-screen.active {
+      display: flex;
+    }
+
+    .inbox-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .chat-inbox-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .chat-inbox-item:active {
+      background: #1e293b;
+    }
+
+    .inbox-user-info h4 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .inbox-user-info p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 250px;
+    }
+
+    .unread-badge {
+      background: var(--danger-red);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+
+    .chat-messages-body {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #0b0f19;
+    }
+
+    .chat-bubble {
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      word-wrap: break-word;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    /* Layout Rule: 
+       - Customer and Admin messages on the right (flex-end)
+       - AI Assistant messages in the center (center)
+    */
+    .bubble-user, .bubble-admin {
+      background: #1f2937;
+      color: #fff;
+      align-self: flex-end;
+    }
+
+    .bubble-bot {
+      background: #312e81;
+      color: #e0e7ff;
+      align-self: center;
+      text-align: left;
+      border: 1px dashed #6366f1;
+    }
+
+    .chat-input-bar {
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: #0b0f19;
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 11px 16px;
+      color: #fff;
+      font-size: 0.92rem;
+      outline: none;
+    }
+
+    .send-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--whatsapp-green);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 6px 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="support-app-wrapper">
+    
+    <header class="app-header">
+      <div class="header-title-wrap">
+        <button id="headerBackBtn" class="back-btn" style="display:none;" onclick="switchToInboxView()"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="header-icon"><i class="fa-solid fa-headset"></i></div>
+        <div>
+          <h3 id="headerTitle" style="font-size: 1.05rem; font-weight: 800;">Customer Support Inbox</h3>
+          <p id="headerSubtitle" style="font-size: 0.72rem; color: #34d399; margin-top: 1px;">● AI & Live Hub</p>
+        </div>
+      </div>
+      <div style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 10px; border-radius: 12px; font-weight: 700;" id="adminStatusBadge">Online</div>
+    </header>
+
+    <!-- VIEW 1: INBOX LIST -->
+    <div id="inboxView" class="view-screen active">
+      <div style="padding: 12px 16px; background: #0f172a; border-bottom: 1px solid var(--border-color);">
+        <p style="font-size: 0.78rem; color: var(--text-muted);">When admin is online, AI is paused. When offline, AI auto-replies every 10 minutes with 14 services & sub-questions. Chats auto-purge every 10 minutes.</p>
+      </div>
+      <div class="inbox-list" id="inboxThreadsContainer">
+        <p style="text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 0.85rem;">No customer chats found.</p>
+      </div>
+    </div>
+
+    <!-- VIEW 2: CHAT CONVERSATION -->
+    <div id="chatView" class="view-screen">
+      <div class="chat-messages-body" id="chatMessagesContainer"></div>
+
+      <div class="chat-input-bar">
+        <input type="text" id="adminReplyInput" class="chat-input" placeholder="Type reply as admin..." onkeypress="if(event.key === 'Enter') sendAdminReply();" />
+        <button class="send-btn" onclick="sendAdminReply()">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const DEFAULT_DB_URL = "https://pay4smart-default-rtdb.firebaseio.com/";
+    const activeFirebaseDbUrl = localStorage.getItem('custom_firebase_db_url') || DEFAULT_DB_URL;
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp({ databaseURL: activeFirebaseDbUrl });
+    }
+    const db = firebase.database();
+
+    let activeChatPhone = null;
+    let activeChatName = null;
+    let activeMessagesListener = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setAdminPresence(true);
+      listenAllSupportChats();
+      enableFullEnglishAiAutoResponder();
+      startTenMinutesChatPurgeInterval();
+    });
+
+    window.addEventListener('beforeunload', () => {
+      setAdminPresence(false);
+    });
+
+    function setAdminPresence(isOnline) {
+      db.ref('app_settings/admin_online_status').set(isOnline);
+      const badge = document.getElementById('adminStatusBadge');
+      if (badge) {
+        if (isOnline) {
+          badge.innerText = "Online";
+          badge.style.color = "#34d399";
+          badge.style.background = "rgba(16, 185, 129, 0.2)";
+        } else {
+          badge.innerText = "Offline (AI Active)";
+          badge.style.color = "#f87171";
+          badge.style.background = "rgba(239, 68, 68, 0.2)";
+        }
+      }
+    }
+
+    function switchToInboxView() {
+      setAdminPresence(true);
+      if (activeMessagesListener) {
+        activeMessagesListener.off();
+        activeMessagesListener = null;
+      }
+      activeChatPhone = null;
+      document.getElementById('chatView').classList.remove('active');
+      document.getElementById('inboxView').classList.add('active');
+      document.getElementById('headerBackBtn').style.display = 'none';
+      document.getElementById('headerTitle').innerText = "Customer Support Inbox";
+      document.getElementById('headerSubtitle').innerText = "● AI & Live Hub";
+      listenAllSupportChats();
+    }
+
+    function switchToChatView(phone, name) {
+      activeChatPhone = phone;
+      activeChatName = name;
+      document.getElementById('inboxView').classList.remove('active');
+      document.getElementById('chatView').classList.add('active');
+      document.getElementById('headerBackBtn').style.display = 'inline-block';
+      document.getElementById('headerTitle').innerText = name;
+      document.getElementById('headerSubtitle').innerText = "+91 " + phone;
+
+      db.ref(`support_chats/${phone}`).update({ unread_admin: false });
+      loadActiveChatMessages(phone, name);
+    }
+
+    function listenAllSupportChats() {
+      const container = document.getElementById('inboxThreadsContainer');
+      db.ref('support_chats').on('value', snap => {
+        if (!snap.exists()) {
+          container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 0.85rem;">No customer chats found.</p>';
+          return;
+        }
+
+        const chats = snap.val();
+        const phones = Object.keys(chats).reverse();
+        let html = '';
+
+        phones.forEach(phone => {
+          const c = chats[phone];
+          const name = c.user_name || 'Customer';
+          const lastMsg = c.last_message || 'New inquiry...';
+          const time = c.last_time || '';
+          const isUnread = (c.unread_admin === true);
+          const badgeHtml = isUnread ? `<span class="unread-badge">New</span>` : '';
+
+          html += `
+            <div class="chat-inbox-item" onclick="switchToChatView('${phone}', '${name.replace(/'/g, "\'")}')">
+              <div class="inbox-user-info">
+                <h4>${name} (+91 ${phone})</h4>
+                <p>${lastMsg}</p>
+              </div>
+              <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                <span style="font-size: 0.7rem; color: var(--text-muted);">${time}</span>
+                ${badgeHtml}
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      });
+    }
+
+    // Comprehensive 14 Services Database
+    const servicesData = {
+      "1": {
+        name: "Mobile Recharge",
+        questions: {
+          "1a": { q: "Recharge failed but money deducted?", a: "If your recharge fails or money is deducted, it is automatically refunded to your wallet within 24 hours. Please check your transaction history." },
+          "1b": { q: "Recharge status pending or stuck?", a: "Pending recharges are automatically processed or refunded by the operator within 1 to 2 hours." }
+        }
+      },
+      "2": {
+        name: "DTH Recharge",
+        questions: {
+          "2a": { q: "DTH recharge not updated on TV?", a: "Please keep your set-top box turned on for 10-15 minutes. If not updated, contact WhatsApp support with your subscriber ID." }
+        }
+      },
+      "3": {
+        name: "Add Money / Wallet Deposit",
+        questions: {
+          "3a": { q: "How to add money to wallet?", a: "Click on the '+ Add' button on the home page, select UPI or QR code, and complete the payment instantly." },
+          "3b": { q: "Money not added after UTR payment?", a: "Submit your UTR / Transaction reference number in the Manual QR section. It will be verified and credited within 30 minutes." }
+        }
+      },
+      "4": {
+        name: "PAN Card Services",
+        questions: {
+          "4a": { q: "How to apply for a new PAN card?", a: "Go to the PAN Card section on the home page. The application fee is 107 INR and it is NSDL certified." },
+          "4b": { q: "PAN card correction procedure?", a: "Select PAN Correction in the PAN section, update your details, and submit documents with the 107 INR fee." }
+        }
+      },
+      "5": {
+        name: "Electricity Bill Payment",
+        questions: {
+          "5a": { q: "Electricity bill payment pending?", a: "Bill payments take up to 24-48 hours to reflect in the electricity board database." }
+        }
+      },
+      "6": {
+        name: "UPI Transfer",
+        questions: {
+          "6a": { q: "UPI transfer failed or stuck?", a: "Failed UPI transfers are refunded instantly or within 3-5 business days by banking partners." }
+        }
+      },
+      "7": {
+        name: "QR Code Pay",
+        questions: {
+          "7a": { q: "QR code scanning error?", a: "Ensure you have a stable internet connection and camera permissions enabled." }
+        }
+      },
+      "8": {
+        name: "Cashback & Commission (Margin)",
+        questions: {
+          "8a": { q: "Where to check my commission margin?", a: "Go to the Margin option in the menu to view cashback and commission rates for each service." }
+        }
+      },
+      "9": {
+        name: "Transaction History",
+        questions: {
+          "9a": { q: "How to view old transactions?", a: "Tap on 'History' from the bottom navigation or profile menu to view all past recharges and payments." }
+        }
+      },
+      "10": {
+        name: "TPIN Reset & Security",
+        questions: {
+          "10a": { q: "How to reset TPIN?", a: "Go to Settings, click on 'Reset TPIN', verify via OTP sent to your registered mobile number, and set a new TPIN." }
+        }
+      },
+      "11": {
+        name: "Bank Withdrawal",
+        questions: {
+          "11a": { q: "How to withdraw wallet balance to bank?", a: "Go to Wallet -> Withdraw, enter your bank account or UPI ID, and request transfer." }
+        }
+      },
+      "12": {
+        name: "Notification & Alerts",
+        questions: {
+          "12a": { q: "Not receiving notification alerts?", a: "Check your phone notification settings and ensure app permissions are enabled." }
+        }
+      },
+      "13": {
+        name: "Profile & KYC Update",
+        questions: {
+          "13a": { q: "How to update KYC or profile details?", a: "Go to Profile settings to update your name, email, and submit KYC documents." }
+        }
+      },
+      "14": {
+        name: "WhatsApp Support Contact",
+        questions: {
+          "14a": { q: "How to contact official WhatsApp support?", a: "For direct assistance, message us on WhatsApp at +91 7994946784." }
+        }
+      }
+    };
+
+    // AI Auto-Responder with 10-minute interval check and admin offline rule
+    function enableFullEnglishAiAutoResponder() {
+      db.ref('support_chats').on('value', snap => {
+        if (!snap.exists()) return;
+        const chats = snap.val();
+
+        db.ref('app_settings/admin_online_status').once('value', adminSnap => {
+          const isAdminOnline = adminSnap.val() === true;
+          if (isAdminOnline) return; // Do not reply if Admin is online
+
+          Object.keys(chats).forEach(phone => {
+            const chat = chats[phone];
+            if (!chat.messages) return;
+
+            const msgKeys = Object.keys(chat.messages);
+            const lastKey = msgKeys[msgKeys.length - 1];
+            const lastMsg = chat.messages[lastKey];
+
+            if (lastMsg && lastMsg.sender === 'user') {
+              const nowTime = Date.now();
+              const lastInteractionTime = chat.last_ai_interaction || 0;
+              const tenMinutesMs = 10 * 60 * 1000;
+
+              // Check if 10 minutes have passed since last AI greeting/interaction, or if it's the very first message
+              const isFirstMessage = !chat.ai_welcomed;
+              const isTimeElapsed = (nowTime - lastInteractionTime) >= tenMinutesMs;
+
+              if (isFirstMessage || isTimeElapsed) {
+                const customerName = chat.user_name || 'Customer';
+                const text = lastMsg.text.trim().toLowerCase();
+                let replyText = "";
+
+                // Check if user selected a service or sub-question number
+                let matchedAnswer = findServiceAnswer(text);
+
+                if (matchedAnswer) {
+                  replyText = matchedAnswer + "
+
+For further assistance, please contact WhatsApp Support: +91 7994946784";
+                } else {
+                  // Default Welcome Message with all 14 Services listed
+                  replyText = `Hello ${customerName}! Welcome to Pay4Smart Support. Please choose from our 14 services below by replying with the corresponding number or service name:
+
+`;
+                  
+                  Object.keys(servicesData).forEach(key => {
+                    replyText += `${key}. ${servicesData[key].name}
+`;
+                  });
+
+                  replyText += `
+Type the service number or question to get instant solutions.`;
+                }
+
+                const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
+
+                db.ref(`support_chats/${phone}/messages`).push({
+                  sender: 'bot',
+                  sender_label: 'AI Assistant',
+                  text: replyText,
+                  time: timeStr,
+                  timestamp: nowTime
+                });
+
+                const updates = {
+                  last_message: "AI: " + lastMsg.text,
+                  last_time: timeStr,
+                  last_timestamp: nowTime,
+                  unread_admin: true,
+                  ai_welcomed: true,
+                  last_ai_interaction: nowTime
+                };
+
+                db.ref(`support_chats/${phone}`).update(updates);
+              }
+            }
+          });
+        });
+      });
+    }
+
+    function findServiceAnswer(input) {
+      input = input.trim();
+      // Check if input is a service number (1 to 14)
+      if (servicesData[input]) {
+        let s = servicesData[input];
+        let res = `**${s.name} Questions:**
+`;
+        let qKeys = Object.keys(s.questions);
+        qKeys.forEach((qk, idx) => {
+          res += `${idx + 1}. ${s.questions[qk].q}
+   Ans: ${s.questions[qk].a}
+`;
+        });
+        return res;
+      }
+
+      // Check across all questions and answers
+      for (let sKey in servicesData) {
+        let s = servicesData[sKey];
+        if (input.toLowerCase().includes(s.name.toLowerCase())) {
+          let res = `**${s.name} Solutions:**
+`;
+          let qKeys = Object.keys(s.questions);
+          qKeys.forEach((qk, idx) => {
+            res += `${idx + 1}. ${s.questions[qk].q}
+   Ans: ${s.questions[qk].a}
+`;
+          });
+          return res;
+        }
+        for (let qKey in s.questions) {
+          let item = s.questions[qKey];
+          if (input.toLowerCase().includes(item.q.toLowerCase()) || input === qKey) {
+            return item.a;
+          }
+        }
+      }
+      return null;
+    }
+
+    // 10 minutes auto-purge interval from Firebase
+    function startTenMinutesChatPurgeInterval() {
+      setInterval(() => {
+        const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
+        db.ref('support_chats').once('value', snapshot => {
+          if (!snapshot.exists()) return;
+          snapshot.forEach(childSnap => {
+            const phone = childSnap.key;
+            const chatData = childSnap.val();
+            if (chatData.last_timestamp && chatData.last_timestamp < tenMinutesAgo) {
+              db.ref(`support_chats/${phone}`).remove().catch(() => {});
+            }
+          });
+        });
+      }, 30 * 1000);
+    }
+
+    function loadActiveChatMessages(phone, name) {
+      const container = document.getElementById('chatMessagesContainer');
+      container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">Loading...</p>';
+
+      if (activeMessagesListener) activeMessagesListener.off();
+
+      activeMessagesListener = db.ref(`support_chats/${phone}/messages`);
+      activeMessagesListener.on('value', snap => {
+        if (!snap.exists()) {
+          container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:30px; font-size:0.85rem;">No messages.</p>';
+          return;
+        }
+
+        const msgs = snap.val();
+        let html = '';
+        Object.keys(msgs).forEach(k => {
+          const m = msgs[k];
+          const sender = m.sender; 
+          let bubbleClass = 'bubble-bot';
+          let label = m.sender_label || 'AI Assistant';
+
+          if (sender === 'user') {
+            bubbleClass = 'bubble-user';
+            label = name;
+          } else if (sender === 'admin') {
+            bubbleClass = 'bubble-admin';
+            label = m.admin_name || 'Admin';
+          }
+
+          // Layout rule:
+          // Customer (user) and Admin (admin) on the right (flex-end)
+          // AI Assistant (bot) in the center (center)
+          let alignSide = 'flex-start';
+          let textAlign = 'left';
+          
+          if (sender === 'user' || sender === 'admin') {
+            alignSide = 'flex-end';
+            textAlign = 'right';
+          } else if (sender === 'bot') {
+            alignSide = 'center';
+            textAlign = 'center';
+          }
+
+          html += `
+            <div style="display:flex; flex-direction:column; max-width:85%; align-self:${alignSide};">
+              <span style="font-size:0.65rem; color:var(--text-muted); margin-bottom:2px; padding:0 4px; text-align:${textAlign};">${label} • ${m.time || ''}</span>
+              <div class="chat-bubble ${bubbleClass}">
+                ${m.text.replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+        container.scrollTop = container.scrollHeight;
+      });
+    }
+
+    async function sendAdminReply() {
+      const input = document.getElementById('adminReplyInput');
+      const text = input.value.trim();
+      if (!text || !activeChatPhone) return;
+
+      input.value = ``;
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const replyObj = {
+        sender: 'admin',
+        admin_name: 'Admin',
+        sender_label: 'Admin',
+        text: text,
+        time: timeStr,
+        timestamp: Date.now()
+      };
+
+      await db.ref(`support_chats/${activeChatPhone}/messages`).push(replyObj);
+      await db.ref(`support_chats/${activeChatPhone}`).update({
+        last_message: "Admin: " + text,
+        last_time: timeStr,
+        last_timestamp: Date.now(),
+        unread_user: true,
+        unread_admin: false
+      });
+    }
+  </script>
+</body>
+</html>
