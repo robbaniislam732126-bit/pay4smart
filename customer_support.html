@@ -428,7 +428,7 @@
     }
     const db = firebase.database();
 
-    let customerPhone = localStorage.getItem('pay4smart_customer_phone');
+    let customerPhone = localStorage.getItem('pay4smart_logged_in_phone') || localStorage.getItem('pay4smart_customer_phone');
     if (!customerPhone) {
       customerPhone = "Guest_" + Math.floor(100000 + Math.random() * 900000);
       localStorage.setItem('pay4smart_customer_phone', customerPhone);
