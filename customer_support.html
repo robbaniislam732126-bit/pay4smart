@@ -111,7 +111,6 @@
       cursor: pointer;
     }
 
-    /* DARK MODE TOGGLE SWITCH */
     .theme-switch-box {
       position: relative;
       display: inline-block;
@@ -163,7 +162,6 @@
       display: flex;
     }
 
-    /* VIEW 1: HERO SCREEN */
     #supportHeroView {
       overflow-y: auto;
       background: var(--bg-color);
@@ -221,7 +219,6 @@
       margin-top: 16px;
     }
 
-    /* VIEW 2: CHAT MESSENGER SCREEN */
     #supportChatMessengerView {
       background: var(--chat-bg);
     }
@@ -256,11 +253,11 @@
     .chat-bubble-row.admin-row { justify-content: flex-start; }
 
     .chat-bubble {
-      max-width: 82%;
-      padding: 8px 12px;
+      max-width: 88%;
+      padding: 9px 13px;
       position: relative;
       font-size: 15px;
-      line-height: 1.38;
+      line-height: 1.45;
       word-wrap: break-word;
       box-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.15);
     }
@@ -291,6 +288,53 @@
       margin-top: 4px;
       font-size: 11px;
       color: var(--text-muted);
+    }
+
+    .checkbox-option-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid #cbd5e1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-top: 6px;
+      cursor: pointer;
+      font-weight: 750;
+      font-size: 0.92rem;
+      color: #1e1b4b;
+      transition: all 0.2s;
+    }
+    body.dark-mode .checkbox-option-card {
+      background: #1e1b4b;
+      color: #f8fafc;
+      border-color: #4c1d95;
+    }
+    .checkbox-option-card:active {
+      transform: scale(0.98);
+      background: #4c1d95;
+      color: #fff;
+    }
+    .checkbox-option-card input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-purple);
+      cursor: pointer;
+    }
+
+    .whatsapp-reply-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #25d366;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 25px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-decoration: none;
+      margin-top: 10px;
+      box-shadow: 0 4px 14px rgba(37,211,102,0.4);
     }
 
     .chat-input-bar-container {
@@ -420,8 +464,7 @@
   </div>
 
   <script>
-    const DEFAULT_DB_URL = "https://pay4smart-default-rtdb.firebaseio.com/";
-    const activeFirebaseDbUrl = localStorage.getItem('custom_firebase_db_url') || DEFAULT_DB_URL;
+    const activeFirebaseDbUrl = "https://pay4smart-default-rtdb.firebaseio.com/";
     
     if (!firebase.apps.length) {
       firebase.initializeApp({ databaseURL: activeFirebaseDbUrl });
@@ -433,7 +476,7 @@
       customerPhone = "Guest_" + Math.floor(100000 + Math.random() * 900000);
       localStorage.setItem('pay4smart_customer_phone', customerPhone);
     }
-    let customerName = localStorage.getItem('pay4smart_customer_name') || "Valued Customer";
+    let customerName = localStorage.getItem('pay4smart_customer_name') || localStorage.getItem('pay4smart_logged_in_name') || "Valued Customer";
 
     let messagesListener = null;
 
@@ -441,7 +484,6 @@
       listenLiveAdminStatus();
       startTenMinutesChatPurgeInterval();
 
-      // Default to Light/White mode on initial load
       document.body.classList.remove('dark-mode');
       localStorage.setItem('pay4smart_dark_mode', 'false');
       const t1 = document.getElementById('themeToggleHero');
@@ -480,6 +522,7 @@
     }
 
     function listenLiveAdminStatus() {
+      // Listen to admin presence from any admin panel source
       db.ref('app_settings/admin_online_status').on('value', snap => {
         const isOnline = snap.val() === true;
         const badge = document.getElementById('heroOnlineBadge');
@@ -498,7 +541,6 @@
       });
     }
 
-    // 10 minutes auto-purge interval from Firebase
     function startTenMinutesChatPurgeInterval() {
       setInterval(() => {
         const tenMinutesAgo = Date.now() - (10 * 60 * 1000);
@@ -515,95 +557,200 @@
       }, 30 * 1000);
     }
 
+    // 14 Services Database with Google Play Code & FASTag fully integrated
     const servicesData = {
       "1": {
-        name: "Mobile Recharge",
-        questions: {
-          "1a": { q: "Recharge failed but money deducted?", a: "If your recharge fails or money is deducted, it is automatically refunded to your wallet within 24 hours. Please check your transaction history." },
-          "1b": { q: "Recharge status pending or stuck?", a: "Pending recharges are automatically processed or refunded by the operator within 1 to 2 hours." }
-        }
+        name: "Other Reason",
+        subOptions: ["Login Problem", "Recharge Problem", "OTP Problem", "TPIN Problem", "Wallet / Add Money Issue", "Commission / Margin Issue"],
+        description: "For general account issues, login troubles, OTP verification, or security PIN assistance."
       },
       "2": {
-        name: "DTH Recharge",
-        questions: {
-          "2a": { q: "DTH recharge not updated on TV?", a: "Please keep your set-top box turned on for 10-15 minutes. If not updated, contact WhatsApp support with your subscriber ID." }
-        }
+        name: "Mobile Recharge",
+        providers: ["Airtel 349+", "BSNL Special Tariff", "BSNL Talktime", "Jio", "Jio Emergency 19-249", "VI", "Airtel 10-299"],
+        description: "Instant prepaid recharges with high cashback."
       },
       "3": {
-        name: "Add Money / Wallet Deposit",
-        questions: {
-          "3a": { q: "How to add money to wallet?", a: "Click on the '+ Add' button on the home page, select UPI or QR code, and complete the payment instantly." },
-          "3b": { q: "Money not added after UTR payment?", a: "Submit your UTR / Transaction reference number in the Manual QR section. It will be verified and credited within 30 minutes." }
-        }
+        name: "DTH Recharge",
+        providers: ["Airtel Digital Tv", "Dish Tv", "Sun Direct", "Tata Sky", "Videocon D2h"],
+        description: "Instant DTH activation and balance update."
       },
       "4": {
-        name: "PAN Card Services",
-        questions: {
-          "4a": { q: "How to apply for a new PAN card?", a: "Go to the PAN Card section on the home page. The application fee is 107 INR and it is NSDL certified." },
-          "4b": { q: "PAN card correction procedure?", a: "Select PAN Correction in the PAN section, update your details, and submit documents with the 107 INR fee." }
-        }
+        name: "Add Money / Wallet Deposit",
+        providers: ["Instant UPI Gateway", "Manual QR Code Scan & UTR Submission"],
+        description: "Add funds to wallet securely for recharges."
       },
       "5": {
-        name: "Electricity Bill Payment",
-        questions: {
-          "5a": { q: "Electricity bill payment pending?", a: "Bill payments take up to 24-48 hours to reflect in the electricity board database." }
-        }
+        name: "PAN Card Services",
+        providers: ["NSDL New PAN Application", "NSDL PAN Correction & Update"],
+        description: "NSDL certified instant e-PAN issuance in 2 hours."
       },
       "6": {
-        name: "UPI Transfer",
-        questions: {
-          "6a": { q: "UPI transfer failed or stuck?", a: "Failed UPI transfers are refunded instantly or within 3-5 business days by banking partners." }
-        }
+        name: "Electricity Bill Payment",
+        providers: ["South Bihar Power Distribution", "North Bihar Power Distribution", "Tripura State Electricity Corporation", "Assam Power Distribution Company Ltd", "West Bengal State Electricity Distribution Company"],
+        description: "Pay electricity bills seamlessly under Bharat Connect."
       },
       "7": {
-        name: "QR Code Pay",
-        questions: {
-          "7a": { q: "QR code scanning error?", a: "Ensure you have a stable internet connection and camera permissions enabled." }
-        }
+        name: "Google Play Code",
+        providers: ["Google Play Recharge Code"],
+        description: "Instant Google Play redeem code generation for gaming and apps."
       },
       "8": {
-        name: "Cashback & Commission (Margin)",
-        questions: {
-          "8a": { q: "Where to check my commission margin?", a: "Go to the Margin option in the menu to view cashback and commission rates for each service." }
-        }
+        name: "FASTag Recharge",
+        providers: ["ICICI Bank", "Airtel FASTag", "Paytm Payments Bank", "IDFC First Bank Ltd", "Axis Bank", "Bank of Baroda", "HDFC Bank", "Indian Highways Management Company (IHMCL)", "IndusInd Bank", "SBI FASTag"],
+        description: "Instant FASTag toll recharge for all major banks across India."
       },
       "9": {
-        name: "Transaction History",
-        questions: {
-          "9a": { q: "How to view old transactions?", a: "Tap on 'History' from the bottom navigation or profile menu to view all past recharges and payments." }
-        }
+        name: "Cashback & Commission (Margin)",
+        providers: ["Check Commission / Margin"],
+        description: "For all commission and margin related queries, please connect directly with our support team on WhatsApp."
       },
       "10": {
-        name: "TPIN Reset & Security",
-        questions: {
-          "10a": { q: "How to reset TPIN?", a: "Go to Settings, click on 'Reset TPIN', verify via OTP sent to your registered mobile number, and set a new TPIN." }
-        }
+        name: "Transaction History",
+        providers: ["Ledger & Detailed Filters"],
+        description: "View past recharges, deposits, and bill payments."
       },
       "11": {
-        name: "Bank Withdrawal",
-        questions: {
-          "11a": { q: "How to withdraw wallet balance to bank?", a: "Go to Wallet -> Withdraw, enter your bank account or UPI ID, and request transfer." }
-        }
+        name: "TPIN Reset & Security",
+        providers: ["OTP Verified Security PIN Reset"],
+        description: "Manage 4-digit security TPIN."
       },
       "12": {
-        name: "Notification & Alerts",
-        questions: {
-          "12a": { q: "Not receiving notification alerts?", a: "Check your phone notification settings and ensure app permissions are enabled." }
-        }
+        name: "Bank Withdrawal",
+        providers: ["Wallet to Bank Transfer Request"],
+        description: "Withdraw accumulated earnings to your bank account."
       },
       "13": {
-        name: "Profile & KYC Update",
-        questions: {
-          "13a": { q: "How to update KYC or profile details?", a: "Go to Profile settings to update your name, email, and submit KYC documents." }
-        }
+        name: "Notification & Alerts",
+        providers: ["App Push & SMS Notifications"],
+        description: "Stay updated on all transaction statuses."
       },
       "14": {
-        name: "WhatsApp Support Contact",
-        questions: {
-          "14a": { q: "How to contact official WhatsApp support?", a: "For direct assistance, message us on WhatsApp at +91 7994946784." }
-        }
+        name: "Profile & KYC Update",
+        providers: ["Personal Details & Verification"],
+        description: "Update your name, email, and verification documents."
       }
     };
+
+    function findServiceAnswer(input) {
+      input = input.trim().toLowerCase();
+
+      // Check commission / margin queries -> STRICTLY redirect to WhatsApp
+      if (input.includes("commission") || input.includes("margin") || input.includes("cashback") || input.includes("rate") || input.includes("কমিশন") || input.includes("মার্জিন")) {
+        return {
+          text: "**Commission & Margin Support:**\nFor all commission rates, margins, and cashback details shown in your commission list, please chat directly with our support team on WhatsApp via the button below:",
+          options: [],
+          waBtn: true
+        };
+      }
+
+      // Check if input is a service number (1 to 14) or service name
+      let foundKey = Object.keys(servicesData).find(k => k === input || servicesData[k].name.toLowerCase() === input || input.includes(servicesData[k].name.toLowerCase()));
+      if (foundKey) {
+        let s = servicesData[foundKey];
+        if (foundKey === "9") {
+          return {
+            text: `**${s.name}**\n${s.description}\n\nPlease chat directly with our support team on WhatsApp via the button below:`,
+            options: [],
+            waBtn: true
+          };
+        }
+
+        let options = [];
+        if (s.subOptions) {
+          options = s.subOptions;
+        } else if (s.providers) {
+          options = s.providers;
+        }
+        return { text: `**${s.name}**\n${s.description}\n\nPlease select an option below:`, options: options, waBtn: false };
+      }
+
+      // Check sub-options for "Other Reason"
+      const subIssues = ["login problem", "recharge problem", "otp problem", "tpin problem", "wallet", "commission", "add money", "tiffin reset"];
+      for (let issue of subIssues) {
+        if (input.includes(issue)) {
+          return {
+            text: `**Resolution Guide for ${issue.toUpperCase()}:**\n1. Ensure stable internet connection.\n2. Clear app cache or restart Pay4Smart.\n3. For further assistance, please contact our support team directly on WhatsApp:`,
+            options: [],
+            waBtn: true
+          };
+        }
+      }
+
+      // Check specific service questions (profile update, TPIN reset, etc.)
+      if (input.includes("profile") || input.includes("kyc") || input.includes("প্রোফাইল")) {
+        return {
+          text: "**Profile Update Guide:**\n1. Go to Settings in the bottom navigation.\n2. Tap on your Profile name or Edit Profile.\n3. Update your Full Name and Email address.\n4. Save changes instantly.",
+          options: [],
+          waBtn: false
+        };
+      }
+      if (input.includes("tpin") || input.includes("পিন") || input.includes("password") || input.includes("পাসওয়ার্ড")) {
+        return {
+          text: "**TPIN Reset & Change Guide:**\n1. Go to Settings -> Reset TPIN or Change TPIN.\n2. Enter your old TPIN (for change) or verify via 6-digit OTP (for reset).\n3. Set your new 4-digit security TPIN and confirm.",
+          options: [],
+          waBtn: false
+        };
+      }
+
+      // Check providers from the commission table (without provider codes)
+      const providerGuides = {
+        "airtel 349+": "Airtel 349+ Prepaid Guide:\n1. Enter valid 10-digit Airtel number.\n2. Select Airtel operator & circle.\n3. Choose plan amount (₹349 to ₹5000).\n4. Authenticate with 4-digit TPIN.",
+        "bsnl - special tariff": "BSNL Special Tariff Guide:\n1. Enter BSNL mobile number.\n2. Choose BSNL Special Tariff category.\n3. Complete transaction using 4-digit TPIN.",
+        "bsnl talktime": "BSNL Talktime Guide:\n1. Enter BSNL number.\n2. Select BSNL Talktime pack (₹10 - ₹5000).\n3. Confirm with TPIN.",
+        "jio": "JIO Mobile Guide:\n1. Enter 10-digit Jio mobile number.\n2. Select Jio operator and circle.\n3. Choose plan or custom amount.\n4. Complete payment securely with TPIN.",
+        "jio emergency 19-249": "Jio Emergency Data Pack Guide:\n1. Enter Jio mobile number.\n2. Select Jio Emergency pack (₹19 - ₹249).\n3. Confirm with TPIN.",
+        "vi": "VI Mobile Guide:\n1. Enter 10-digit VI number.\n2. Select VI operator and circle.\n3. Select recharge plan and enter TPIN.",
+        "airtel digital tv": "Airtel Digital TV DTH Guide:\n1. Enter Subscriber ID.\n2. Verify account name and monthly plan.\n3. Pay with TPIN.",
+        "dish tv": "Dish TV DTH Guide:\n1. Enter Subscriber ID / VC Number.\n2. Enter recharge amount and pay with TPIN.",
+        "sun direct": "Sun Direct DTH Guide:\n1. Enter Smart Card / Subscriber ID.\n2. Enter amount and confirm with TPIN.",
+        "tata sky": "Tata Sky (Tata Play) DTH Guide:\n1. Enter Subscriber ID.\n2. Enter recharge amount and confirm with TPIN.",
+        "videocon d2h": "Videocon D2H Guide:\n1. Enter Customer ID.\n2. Enter recharge amount and confirm with TPIN.",
+        "airtel postpaid 199-5000": "Airtel Postpaid Guide:\n1. Enter Airtel postpaid mobile number.\n2. Enter bill amount (₹199 - ₹5000).\n3. Confirm with TPIN.",
+        "google play": "Google Play Recharge Code Guide:\n1. Enter Google account email or phone number.\n2. Select code amount (₹10 - ₹10000).\n3. Pay with TPIN to receive redeem code instantly.",
+        "south bihar power distribution": "South Bihar Power Distribution Guide:\n1. Enter Consumer Number / ID.\n2. Fetch bill details and pay with TPIN.",
+        "north bihar power distribution": "North Bihar Power Distribution Guide:\n1. Enter Consumer Number.\n2. Fetch bill details and pay with TPIN.",
+        "tripura state electricity corporation": "Tripura State Electricity Guide:\n1. Enter Consumer ID and pay with TPIN.",
+        "assam power distribution company ltd": "Assam Power Distribution Guide:\n1. Enter Consumer ID and pay with TPIN.",
+        "west bengal state electricity distribution company": "WBSEDCL Electricity Guide:\n1. Enter 11-digit Consumer ID.\n2. Fetch bill details and pay securely with TPIN.",
+        "icici bank": "ICICI Bank FASTag Guide:\n1. Enter Vehicle Registration Number.\n2. Enter recharge amount and confirm with TPIN.",
+        "airtel fastag": "Airtel FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN.",
+        "paytm payments bank": "Paytm Payments Bank FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN.",
+        "idfc first bank ltd": "IDFC First Bank FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN.",
+        "axis bank": "Axis Bank FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN.",
+        "bank of baroda": "Bank of Baroda FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN.",
+        "hdfc bank": "HDFC Bank FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN.",
+        "indian highways management company": "IHMCL FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN.",
+        "indusind bank": "IndusInd Bank FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN.",
+        "sbi fastag": "SBI FASTag Guide:\n1. Enter Vehicle Number and pay with TPIN."
+      };
+
+      for (let pKey in providerGuides) {
+        if (input.includes(pKey)) {
+          return { text: providerGuides[pKey], options: [], waBtn: false };
+        }
+      }
+
+      // Check service name partial match
+      for (let sKey in servicesData) {
+        let s = servicesData[sKey];
+        if (input.includes(s.name.toLowerCase())) {
+          let options = [];
+          if (s.subOptions) options = s.subOptions;
+          else if (s.providers) options = s.providers;
+          return { text: `**${s.name}**\n${s.description}`, options: options, waBtn: false };
+        }
+      }
+
+      return null;
+    }
+
+    function handleCheckboxSelection(optionText) {
+      const input = document.getElementById('liveUserChatInput');
+      if (input) {
+        input.value = optionText;
+        sendUserChatMessage();
+      }
+    }
 
     function renderSingleChatMessageHtml(m) {
       const isAdmin = (m.sender === 'admin');
@@ -620,10 +767,29 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 
+      let checkboxesHtml = '';
+      if (m.checkbox_options && Array.isArray(m.checkbox_options)) {
+        m.checkbox_options.forEach(opt => {
+          checkboxesHtml += `
+            <div class="checkbox-option-card" onclick="handleCheckboxSelection('${opt.replace(/'/g, "\'")}')">
+              <input type="checkbox" onclick="event.stopPropagation(); handleCheckboxSelection('${opt.replace(/'/g, "\'")}')" />
+              <span>${opt}</span>
+            </div>
+          `;
+        });
+      }
+
+      let waButtonHtml = '';
+      if (m.has_whatsapp_btn) {
+        waButtonHtml = `<br><a href="https://wa.me/917994946784?text=Hi%20Pay4Smart%20Support" target="_blank" class="whatsapp-reply-btn"><i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp</a>`;
+      }
+
       return `
         <div class="${rowClass}" ${isBot ? 'style="justify-content:center;"' : ''}>
           <div class="${bubbleClass}">
             <span class="chat-bubble-text">${safeText}</span>
+            ${checkboxesHtml}
+            ${waButtonHtml}
             <span class="chat-bubble-meta">
               ${timeStr} ${tickHtml}
             </span>
@@ -667,7 +833,7 @@
       if (!text) return;
 
       input.value = '';
-      input.focus(); // Keep focus so mobile keyboard stays open!
+      input.focus(); // Keep keyboard open
 
       const now = new Date();
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase();
@@ -680,84 +846,86 @@
       };
 
       await db.ref(`support_chats/${customerPhone}/messages`).push(msgObj);
-      await db.ref(`support_chats/${customerPhone}`).update({
+
+      const chatRef = db.ref(`support_chats/${customerPhone}`);
+      const chatSnap = await chatRef.once('value');
+      let chatVal = chatSnap.val() || {};
+
+      const nowTime = Date.now();
+      const lastAiTime = chatVal.last_ai_interaction || 0;
+      const tenMins = 10 * 60 * 1000;
+      const isFirstMsg = !chatVal.ai_welcomed;
+      const isTimePassed = (nowTime - lastAiTime) >= tenMins;
+
+      await chatRef.update({
         user_name: customerName,
         user_phone: customerPhone,
         last_message: text,
         last_time: timeStr,
-        last_timestamp: Date.now(),
+        last_timestamp: nowTime,
         unread_admin: true,
         unread_user: false
       });
 
       // AI auto-reply if admin is offline
-      db.ref('app_settings/admin_online_status').once('value', adminSnap => {
+      db.ref('app_settings/admin_online_status').once('value', async adminSnap => {
         const isAdminOnline = adminSnap.val() === true;
         if (!isAdminOnline) {
           const t = text.toLowerCase();
           let replyText = "";
-          let matched = findServiceAnswer(t);
+          let optionsList = [];
+          let includeWa = false;
 
-          if (matched) {
-            replyText = matched + "\n\nFor further assistance, please contact WhatsApp Support: +91 7994946784";
-          } else {
-            replyText = `Hello ${customerName}! Welcome to Pay4Smart Support. Please choose from our 14 services below by replying with the corresponding number or service name:\n\n`;
+          const isGreeting = ["hi", "hello", "hey", "help", "start", "support"].some(g => t.includes(g));
+
+          // Rule 1: First send ONLY welcome message (once every 10 mins or on greeting)
+          if (isFirstMsg || isTimePassed || isGreeting) {
+            replyText = `Hello ${customerName}! Welcome to Pay4Smart Support. Please choose from our services below:`;
+            
             Object.keys(servicesData).forEach(key => {
-              replyText += `${key}. ${servicesData[key].name}\n`;
+              optionsList.push(`${key}. ${servicesData[key].name}`);
             });
-            replyText += `\nType the service number or question to get instant solutions.`;
+
+            await chatRef.update({ ai_welcomed: true, last_ai_interaction: nowTime });
+          } else {
+            let matched = findServiceAnswer(t);
+            if (matched) {
+              replyText = matched.text;
+              optionsList = matched.options || [];
+              includeWa = matched.waBtn;
+            } else {
+              replyText = `Please choose a service below:`;
+              Object.keys(servicesData).forEach(key => {
+                optionsList.push(`${key}. ${servicesData[key].name}`);
+              });
+            }
           }
 
           setTimeout(async () => {
-            const botMsg = {
+            let botMsg = {
               sender: 'bot',
               sender_label: 'AI Assistant',
               text: replyText,
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).toLowerCase(),
               timestamp: Date.now()
             };
+            if (optionsList.length > 0) {
+              botMsg.checkbox_options = optionsList;
+            }
+            if (includeWa) {
+              botMsg.has_whatsapp_btn = true;
+            }
+
             await db.ref(`support_chats/${customerPhone}/messages`).push(botMsg);
-            await db.ref(`support_chats/${customerPhone}`).update({
+            await chatRef.update({
               last_message: "AI: " + text,
               last_time: botMsg.time,
               last_timestamp: Date.now(),
               unread_admin: true
             });
-          }, 600);
+          }, 500);
         }
       });
-    }
-
-    function findServiceAnswer(input) {
-      input = input.trim();
-      if (servicesData[input]) {
-        let s = servicesData[input];
-        let res = `**${s.name} Questions:**\n`;
-        let qKeys = Object.keys(s.questions);
-        qKeys.forEach((qk, idx) => {
-          res += `${idx + 1}. ${s.questions[qk].q}\n   Ans: ${s.questions[qk].a}\n`;
-        });
-        return res;
-      }
-
-      for (let sKey in servicesData) {
-        let s = servicesData[sKey];
-        if (input.toLowerCase().includes(s.name.toLowerCase())) {
-          let res = `**${s.name} Solutions:**\n`;
-          let qKeys = Object.keys(s.questions);
-          qKeys.forEach((qk, idx) => {
-            res += `${idx + 1}. ${s.questions[qk].q}\n   Ans: ${s.questions[qk].a}\n`;
-          });
-          return res;
-        }
-        for (let qKey in s.questions) {
-          let item = s.questions[qKey];
-          if (input.toLowerCase().includes(item.q.toLowerCase()) || input === qKey) {
-            return item.a;
-          }
-        }
-      }
-      return null;
     }
   </script>
 </body>
